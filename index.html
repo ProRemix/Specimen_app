@@ -3,72 +3,186 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#0b0f14">
-  <title>Robot</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Specimens — Contrôle</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div id="conn" data-state="disconnected">
-      <span class="dot"></span>
-      <span id="conn-label">Déconnecté</span>
+  <!-- En-tête -->
+  <header class="top">
+    <div class="brand">
+      <span class="tag">SP-04</span>
+      <span class="brand-name">The Neck</span>
     </div>
-    <button id="btn-connect" class="small">Connecter le robot</button>
+    <div class="top-actions">
+      <button id="btn-connect" class="pill" data-state="disconnected">
+        <span class="dot"></span><span id="conn-label">Hors ligne</span>
+      </button>
+      <button id="btn-settings" class="icon-btn" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
   </header>
 
-  <section class="robot">
-    <div class="label">Mode du robot</div>
-    <div id="robot-mode" data-mode="">–</div>
-    <div id="stats" class="muted">–</div>
-  </section>
+  <div id="status-line" class="status-line">Robot · —</div>
 
-  <section class="modes">
-    <button id="btn-random" class="mode">Aléatoire</button>
-    <button id="btn-mimic" class="mode">Mimétisme</button>
-  </section>
+  <!-- Modes -->
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-mode="1" role="tab"><span class="num">01</span><span class="name">Aléatoire</span></button>
+    <button class="tab" data-mode="2" role="tab"><span class="num">02</span><span class="name">Mimétisme</span></button>
+    <button class="tab" data-mode="3" role="tab"><span class="num">03</span><span class="name">Animations</span></button>
+    <button class="tab" data-mode="4" role="tab"><span class="num">04</span><span class="name">Joystick</span></button>
+  </nav>
 
-  <section id="camera">
-    <div class="frame">
-      <video id="vid" playsinline muted></video>
-      <canvas id="mesh"></canvas>
-    </div>
-    <div class="row">
-      <span id="face-state" class="muted">Caméra éteinte</span>
-      <span id="fps" class="muted">–</span>
-    </div>
-    <div class="row values">
-      <span>Tangage <b id="val-pitch">0</b>°</span>
-      <span>Roulis <b id="val-roll">0</b>°</span>
-      <span>Rotation <b id="val-yaw">0</b>°</span>
-    </div>
-    <div class="expr">
-      <span>Expression : <b id="expr-label">Neutre</b></span>
-      <div class="bar"><div id="expr-bar" data-expr="0"></div></div>
-    </div>
-    <div class="row">
-      <button id="btn-calibrate" class="small">Recentrer</button>
-      <button id="btn-mesh" class="small">Mesh seul</button>
-    </div>
-  </section>
+  <main>
+    <!-- Accueil / Stop -->
+    <section class="panel" id="panel-idle">
+      <p class="eyebrow">00 — Contrôle</p>
+      <h1 class="headline">Choisis un mode<br>pour le spécimen.</h1>
+      <p class="muted">Sans téléphone connecté, le robot vit seul en mode aléatoire.</p>
+    </section>
 
-  <details class="settings">
-    <summary>Réglages</summary>
-    <label>Gain tangage <output id="gainPitch-val">1.0</output>
-      <input id="gainPitch" type="range" min="0" max="3" step="0.1"></label>
-    <label>Gain roulis <output id="gainRoll-val">1.0</output>
-      <input id="gainRoll" type="range" min="0" max="3" step="0.1"></label>
-    <label>Gain rotation <output id="gainYaw-val">1.0</output>
-      <input id="gainYaw" type="range" min="0" max="3" step="0.1"></label>
-    <label class="check"><input id="invertPitch" type="checkbox"> Inverser le tangage</label>
-    <label class="check"><input id="invertRoll" type="checkbox"> Inverser le roulis</label>
-    <label class="check"><input id="invertYaw" type="checkbox"> Inverser la rotation</label>
-    <label class="check"><input id="pumpsEnabled" type="checkbox"> Pompes réagissent aux expressions</label>
-  </details>
+    <!-- 01 Aléatoire -->
+    <section class="panel" id="panel-random" hidden>
+      <p class="eyebrow">01 — Aléatoire</p>
+      <h1 class="headline">Comportement<br>autonome.</h1>
+      <dl class="specs">
+        <div><dt>Tête</dt><dd id="spec-head">—</dd></div>
+        <div><dt>Pompes</dt><dd id="spec-pumps">—</dd></div>
+        <div><dt>Liaison</dt><dd id="spec-link">—</dd></div>
+      </dl>
+    </section>
 
-  <button id="btn-stop">STOP</button>
+    <!-- 02 Mimétisme -->
+    <section class="panel panel-mimic" id="panel-mimic" hidden>
+      <div class="stage">
+        <video id="vid" playsinline muted></video>
+        <canvas id="mesh"></canvas>
+        <div class="stage-top">
+          <span id="face-state" class="chip">Caméra éteinte</span>
+          <span id="fps" class="chip">—</span>
+        </div>
+        <div class="stage-bottom">
+          <span>P <b id="val-pitch">0</b>°</span>
+          <span>R <b id="val-roll">0</b>°</span>
+          <span>Y <b id="val-yaw">0</b>°</span>
+        </div>
+      </div>
+      <div class="expr">
+        <div class="expr-row"><span class="eyebrow">Expression</span><span id="expr-label" class="expr-name">Neutre</span></div>
+        <div class="bar"><div id="expr-bar" data-expr="0"></div></div>
+      </div>
+      <div class="row-buttons">
+        <button id="btn-calibrate" class="btn">Recentrer</button>
+        <button id="btn-mesh" class="btn">Mesh seul</button>
+      </div>
+    </section>
 
+    <!-- 03 Animations -->
+    <section class="panel" id="panel-anim" hidden>
+      <p class="eyebrow">03 — Animations</p>
+      <div id="anim-grid" class="anim-grid"></div>
+    </section>
+    <!-- 04 Joystick -->
+    <section class="panel" id="panel-joy" hidden>
+      <div class="joy-head">
+        <p class="eyebrow">04 — Joystick</p>
+        <span class="mono-small">Y <b id="joy-yaw">0</b>° · P <b id="joy-pitch">0</b>°</span>
+      </div>
+      <div id="joy" class="joy">
+        <span class="joy-axis joy-axis-h"></span>
+        <span class="joy-axis joy-axis-v"></span>
+        <span class="joy-ring"></span>
+        <span class="joy-label joy-top">Haut</span>
+        <span class="joy-label joy-bottom">Bas</span>
+        <span class="joy-label joy-left">Gauche</span>
+        <span class="joy-label joy-right">Droite</span>
+        <span id="joy-knob" class="joy-knob"></span>
+      </div>
+      <label class="range">Inclinaison <output id="joy-roll-val">0°</output>
+        <input id="joy-roll" type="range" min="-25" max="25" step="1" value="0"></label>
+      <label class="range">Pompe A <output id="joy-pumpA-val">0</output>
+        <input id="joy-pumpA" type="range" min="0" max="255" step="1" value="0"></label>
+      <label class="range">Pompe B <output id="joy-pumpB-val">0</output>
+        <input id="joy-pumpB" type="range" min="0" max="255" step="1" value="0"></label>
+      <div class="row-buttons row-buttons-flat">
+        <button id="joy-hold" class="btn">Garder la position</button>
+        <button id="joy-center" class="btn">Centrer</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Barre du bas -->
+  <footer class="bottom">
+    <button id="btn-qr" class="qr-btn" aria-label="QR codes">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
+      <span>QR</span>
+    </button>
+    <button id="btn-stop" class="stop-btn">Stop</button>
+  </footer>
+
+  <!-- Réglages -->
+  <div id="sheet-settings" class="sheet" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head"><span class="eyebrow">Réglages</span><button class="icon-btn" data-close>×</button></div>
+      <label class="range">Gain tangage <output id="gainPitch-val">1.0</output>
+        <input id="gainPitch" type="range" min="0" max="3" step="0.1"></label>
+      <label class="range">Gain roulis <output id="gainRoll-val">1.0</output>
+        <input id="gainRoll" type="range" min="0" max="3" step="0.1"></label>
+      <label class="range">Gain rotation <output id="gainYaw-val">1.0</output>
+        <input id="gainYaw" type="range" min="0" max="3" step="0.1"></label>
+      <label class="switch"><input id="invertPitch" type="checkbox"><span>Inverser le tangage</span></label>
+      <label class="switch"><input id="invertRoll" type="checkbox"><span>Inverser le roulis</span></label>
+      <label class="switch"><input id="invertYaw" type="checkbox"><span>Inverser la rotation</span></label>
+      <label class="switch"><input id="pumpsEnabled" type="checkbox"><span>Pompes selon les expressions</span></label>
+      <p id="stats" class="mono-small">—</p>
+    </div>
+  </div>
+
+  <!-- QR codes -->
+  <div id="sheet-qr" class="sheet sheet-full" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <span class="eyebrow">QR codes</span>
+        <div class="seg" id="qr-view">
+          <button data-view="single" class="on">Un</button>
+          <button data-view="grid">Tous</button>
+        </div>
+        <button class="icon-btn" data-close>×</button>
+      </div>
+
+      <div id="qr-empty" class="muted qr-empty">Ajoute un lien ci-dessous pour générer un QR code.</div>
+
+      <div id="qr-single" class="qr-single">
+        <div class="qr-card"><div id="qr-big" class="qr-code"></div></div>
+        <div class="qr-caption">
+          <span id="qr-title" class="qr-title"></span>
+          <span id="qr-url" class="mono-small"></span>
+        </div>
+        <div class="qr-pager">
+          <button id="qr-prev" class="icon-btn" aria-label="Précédent">←</button>
+          <span id="qr-count" class="mono-small"></span>
+          <button id="qr-next" class="icon-btn" aria-label="Suivant">→</button>
+        </div>
+      </div>
+
+      <div id="qr-grid" class="qr-grid" hidden></div>
+
+      <form id="qr-form" class="qr-form">
+        <input id="qr-input-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Lien, ex. specimens.ai" required>
+        <input id="qr-input-title" type="text" placeholder="Titre (facultatif)">
+        <button type="submit" class="btn btn-solid">Ajouter</button>
+      </form>
+      <ul id="qr-list" class="qr-list"></ul>
+    </div>
+  </div>
+
+  <script src="js/vendor/qrcode.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
