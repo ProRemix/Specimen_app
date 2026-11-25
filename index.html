@@ -1,0 +1,4145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Specimens — Control</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+/* ============================================================
+   SPECIMENS — interface de contrôle (dark)
+   Polices : remplace --sans / --mono par celles de specimens.ai
+   ============================================================ */
+:root {
+  --sans: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --bg: #0a0a0a;
+  --surface: #121212;
+  --line: #222222;
+  --line-strong: #3a3a3a;
+  --text: #ededed;
+  --muted: #7a7a7a;
+  --accent: #d4ff3d;        /* fluo, utilisé avec parcimonie */
+  --stop: #ff3b30;
+
+  --pad: 20px;
+  --bottom-h: 76px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; }
+[hidden] { display: none !important; }
+
+html, body { background: var(--bg); }
+body {
+  color: var(--text);
+  font: 400 15px/1.45 var(--sans);
+  padding: 0 var(--pad) calc(var(--bottom-h) + 28px + env(safe-area-inset-bottom));
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+button:active { opacity: 0.7; }
+
+.eyebrow, .tag, .mono-small, .chip, .status-line, .num {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.muted { color: var(--muted); }
+.mono-small { color: var(--muted); text-transform: none; letter-spacing: 0.02em; }
+
+/* ---------- En-tête ---------- */
+.top {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: calc(14px + env(safe-area-inset-top)) 0 12px;
+  background: linear-gradient(var(--bg) 80%, transparent);
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.tag { color: var(--muted); }
+.brand-name { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; }
+.top-actions { display: flex; align-items: center; gap: 6px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 999px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.pill[data-state="connecting"] .dot { background: #ffb020; animation: blink 1s infinite; }
+.pill[data-state="connected"] { border-color: var(--line); color: var(--muted); }
+.pill[data-state="connected"] .dot { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+@keyframes blink { 50% { opacity: 0.2; } }
+
+.icon-btn {
+  width: 32px; height: 32px; display: inline-grid; place-items: center;
+  border-radius: 50%; color: var(--text); font-size: 20px; line-height: 1;
+}
+
+.status-line { color: var(--muted); padding: 2px 0 18px; border-bottom: 1px solid var(--line); }
+
+/* ---------- Onglets de mode ---------- */
+.tabs {
+  display: flex; gap: 22px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--line); margin: 0 calc(var(--pad) * -1); padding: 0 var(--pad);
+  scroll-snap-type: x proximity;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tabs .tab { flex: none; scroll-snap-align: start; }
+.tab {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  padding: 16px 0 14px; position: relative; color: var(--muted); text-align: left;
+}
+.tab .name { font-size: 14px; font-weight: 500; color: inherit; }
+.tab.selected { color: var(--text); }
+.tab.selected::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--text);
+}
+.tab.confirmed .num::after { content: " ●"; color: var(--accent); }
+
+/* ---------- Panneaux ---------- */
+main { padding-top: 28px; }
+.panel { animation: rise 0.25s ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.eyebrow { color: var(--muted); }
+.headline {
+  font-size: 34px; line-height: 1.05; font-weight: 400; letter-spacing: -0.025em;
+  margin: 14px 0 18px;
+}
+.specs { border-top: 1px solid var(--line); margin-top: 28px; }
+.specs div {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.specs dt { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.specs dd { font-size: 15px; }
+
+/* ---------- Mimétisme ---------- */
+.panel-mimic { margin: -12px calc(var(--pad) * -1) 0; }
+.stage {
+  position: relative; width: 100%;
+  height: 50vh;
+  background: #000; overflow: hidden;
+}
+.stage video, .stage canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; transform: scaleX(-1);   /* image entière, non recadrée ; miroir à l'affichage */
+  transition: opacity 0.25s;
+}
+.stage video { filter: grayscale(1) brightness(0.32) contrast(1.15); }
+#mesh { filter: blur(1.2px); }
+#fx { filter: blur(1.6px) saturate(1.3); mix-blend-mode: screen; opacity: 0.85; }   /* réaction-diffusion */
+.panel-mimic[data-kind="mirror"] .session,
+.panel-mimic[data-kind="mirror"] .lock-info { display: none; }   /* mesh légèrement diffus (la dissipation augmente ce flou) */
+.stage-top, .stage-bottom {
+  position: absolute; left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 8px;
+}
+.stage-top { top: 12px; }
+.stage-bottom {
+  bottom: 12px; justify-content: flex-start; gap: 16px;
+  font-family: var(--mono); font-size: 12px; color: rgba(255, 255, 255, 0.75);
+}
+.stage-bottom b { color: #fff; font-weight: 500; }
+.chip {
+  padding: 5px 8px; border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px); color: #fff;
+}
+.expr { padding: 18px var(--pad) 0; }
+.expr-row { display: flex; justify-content: space-between; align-items: baseline; }
+.expr-name { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.bar { height: 2px; margin-top: 10px; background: var(--line); overflow: hidden; }
+#expr-bar { height: 100%; width: 0; background: var(--muted); transition: width 0.12s linear; }
+#expr-bar:not([data-expr="0"]) { background: var(--accent); }
+.row-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px var(--pad) 0; }
+
+.btn {
+  height: 46px; border: 1px solid var(--line-strong); border-radius: 4px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.btn.active { border-color: var(--text); }
+.btn.flash { border-color: var(--accent); color: var(--accent); }
+.btn-solid { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* ---------- Animations ---------- */
+.anim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 18px; background: var(--line); border: 1px solid var(--line); }
+.anim {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 18px;
+  min-height: 112px; padding: 14px; background: var(--bg); text-align: left; position: relative;
+}
+.anim .num { color: var(--muted); }
+.anim .anim-name { font-size: 22px; font-weight: 400; letter-spacing: -0.02em; margin-top: auto; }
+.anim .anim-hint { font-size: 12px; color: var(--muted); margin-top: -14px; }
+.anim.playing { background: var(--surface); }
+.anim.playing .num { color: var(--accent); }
+.anim.playing::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 2px; background: var(--accent);
+  animation: progress var(--dur, 2s) linear forwards;
+}
+@keyframes progress { from { width: 0; } to { width: 100%; } }
+
+/* ---------- Barre du bas ---------- */
+.bottom {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: grid; grid-template-columns: var(--bottom-h) 1fr; gap: 10px;
+  padding: 12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 30%);
+}
+.qr-btn {
+  height: var(--bottom-h); border: 1px solid var(--line-strong); border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+}
+.stop-btn {
+  height: var(--bottom-h); border-radius: 6px; background: var(--stop); color: #fff;
+  font-family: var(--mono); font-size: 20px; font-weight: 500; letter-spacing: 0.3em; text-transform: uppercase;
+}
+
+/* ---------- Feuilles (réglages, QR) ---------- */
+.sheet {
+  position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: flex-end; animation: fade 0.2s;
+}
+@keyframes fade { from { opacity: 0; } }
+.sheet-body {
+  width: 100%; max-height: 88vh; overflow-y: auto;
+  background: var(--bg); border-top: 1px solid var(--line-strong);
+  padding: 16px var(--pad) calc(24px + env(safe-area-inset-bottom));
+  animation: up 0.25s ease-out;
+}
+@keyframes up { from { transform: translateY(24px); } }
+.sheet-full .sheet-body { max-height: 100vh; height: 100%; border-top: 0; padding-top: calc(16px + env(safe-area-inset-top)); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+
+.range { display: block; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.range output { float: right; font-family: var(--mono); color: var(--muted); }
+.range input { width: 100%; margin-top: 10px; accent-color: var(--text); }
+.switch { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.switch span { order: -1; }
+.switch input { appearance: none; width: 38px; height: 22px; border-radius: 11px; background: var(--line-strong); position: relative; transition: background 0.2s; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--text); transition: transform 0.2s; }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(16px); background: var(--bg); }
+#stats { margin-top: 16px; }
+
+/* ---------- QR ---------- */
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px; margin-left: auto; }
+.seg button { padding: 5px 12px; border-radius: 999px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.seg button.on { background: var(--text); color: var(--bg); }
+.qr-empty { padding: 40px 0; text-align: center; }
+.qr-single { display: flex; flex-direction: column; align-items: center; }
+.qr-card { width: min(78vw, 360px); aspect-ratio: 1; background: #fff; padding: 14px; border-radius: 8px; }
+.qr-code, .qr-code svg { width: 100%; height: 100%; display: block; }
+.qr-caption { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 16px; text-align: center; max-width: 100%; }
+.qr-title { font-size: 20px; letter-spacing: -0.01em; }
+.qr-caption .mono-small { word-break: break-all; }
+.qr-pager { display: flex; align-items: center; gap: 18px; margin-top: 10px; }
+.qr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.qr-grid figure { margin: 0; }
+.qr-grid .qr-card { width: 100%; padding: 8px; border-radius: 6px; }
+.qr-grid figcaption { margin-top: 6px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qr-form { display: grid; gap: 8px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); }
+.qr-form input {
+  height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px;
+  background: var(--surface); color: var(--text); font: 15px var(--sans); user-select: text;
+}
+.qr-form input::placeholder { color: var(--muted); }
+.qr-list { list-style: none; padding: 0; margin-top: 18px; }
+.qr-list li { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.qr-list .qr-li-text { flex: 1; min-width: 0; }
+.qr-list .qr-li-title { font-size: 14px; }
+.qr-list .mono-small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qr-list li.current .qr-li-title::before { content: "● "; color: var(--accent); }
+
+/* ---------- Joystick ---------- */
+.joy-head { display: flex; justify-content: space-between; align-items: baseline; }
+.joy-head b { color: var(--text); font-weight: 500; }
+.joy {
+  position: relative; width: min(100%, 250px); aspect-ratio: 1; margin: 14px auto 4px;
+  border: 1px solid var(--line-strong); border-radius: 50%;
+  touch-action: none; overflow: hidden;
+}
+.joy-axis { position: absolute; background: var(--line); }
+.joy-axis-h { left: 0; right: 0; top: 50%; height: 1px; }
+.joy-axis-v { top: 0; bottom: 0; left: 50%; width: 1px; }
+.joy-ring { position: absolute; inset: 25%; border: 1px dashed var(--line); border-radius: 50%; }
+.joy-label { position: absolute; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.joy-top { top: 10px; left: 50%; transform: translateX(-50%); }
+.joy-bottom { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.joy-left { left: 12px; top: 50%; transform: translateY(-50%); }
+.joy-right { right: 12px; top: 50%; transform: translateY(-50%); }
+.joy-knob {
+  position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border-radius: 50%; background: var(--text); box-shadow: 0 0 0 8px rgba(237, 237, 237, 0.08);
+  transition: transform 0.25s cubic-bezier(.2, .9, .3, 1.2);
+}
+.joy.dragging .joy-knob { transition: none; background: var(--accent); }
+.row-buttons-flat { padding: 18px 0 0; }
+
+/* ---------- QR full screen ---------- */
+button.qr-card { display: block; cursor: zoom-in; }
+.qr-hint { margin-top: 6px; opacity: 0.7; }
+.qr-full {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  cursor: zoom-out; animation: fade 0.2s;
+}
+.qr-full-code { width: min(92vw, 78vh); aspect-ratio: 1; }
+.qr-full-code svg { width: 100%; height: 100%; display: block; }
+.qr-full-caption { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.qr-full-caption .mono-small { color: inherit; opacity: 0.6; }
+
+/* ---------- Settings: sections and QR colors ---------- */
+.sheet-section {
+  margin: 22px 0 2px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.sheet-section:first-of-type { margin-top: 0; }
+.swatches { display: flex; gap: 10px; padding: 14px 0; flex-wrap: wrap; }
+.swatch {
+  width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--line-strong);
+  display: grid; place-items: center; position: relative; overflow: hidden;
+}
+.swatch span { width: 18px; height: 18px; border-radius: 2px; }
+.swatch.on { outline: 2px solid var(--text); outline-offset: 2px; }
+.color-row { display: flex; align-items: center; gap: 16px; padding: 4px 0 12px; border-bottom: 1px solid var(--line); }
+.color-pick { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.color-pick input {
+  appearance: none; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line-strong);
+  border-radius: 6px; background: none; cursor: pointer;
+}
+.color-pick input::-webkit-color-swatch-wrapper { padding: 3px; }
+.color-pick input::-webkit-color-swatch { border: 0; border-radius: 3px; }
+.qr-preview { width: 56px; height: 56px; margin-left: auto; border-radius: 4px; overflow: hidden; }
+.qr-preview svg { width: 100%; height: 100%; display: block; }
+#qr-contrast { margin-top: 10px; }
+
+/* ---------- Mimic: lock state + full screen video ---------- */
+.stage { cursor: zoom-in; }
+.chip[data-state="locking"] { color: var(--accent); }
+.chip[data-state="tracking"] { background: var(--accent); color: var(--bg); }
+.chip[data-state="cooldown"] { color: var(--muted); }
+.session { height: 2px; background: var(--line); }
+#session-bar { height: 100%; width: 0; background: var(--accent); transition: width 0.2s linear; }
+.lock-info { display: flex; justify-content: space-between; padding: 12px var(--pad) 0; }
+.lock-info b { color: var(--text); font-weight: 500; }
+.stage.is-full, .stage:fullscreen {
+  position: fixed; inset: 0; z-index: 40;
+  width: 100vw; height: 100vh; max-height: none;
+  cursor: zoom-out;
+}
+.stage.is-full .stage-top { top: calc(16px + env(safe-area-inset-top)); }
+.stage.is-full .stage-bottom { bottom: calc(16px + env(safe-area-inset-bottom)); }
+
+/* ---------- Latent space ---------- */
+.lat-mix { margin-top: 10px; font-size: 20px; letter-spacing: -0.01em; min-height: 28px; }
+.lat-mix span { color: var(--muted); font-size: 14px; }
+.latent-pad {
+  display: block; width: 100%; max-width: 380px; aspect-ratio: 1; margin: 12px auto 4px;
+  border: 1px solid var(--line); border-radius: 4px; touch-action: none; cursor: crosshair;
+}
+#lat-drift.active { border-color: var(--accent); color: var(--accent); }
+
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="top">
+    <div class="brand">
+      <span class="tag">SP-04</span>
+      <span class="brand-name">The Neck</span>
+    </div>
+    <div class="top-actions">
+      <button id="btn-connect" class="pill" data-state="disconnected">
+        <span class="dot"></span><span id="conn-label">Offline</span>
+      </button>
+      <button id="btn-settings" class="icon-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="status-line" class="status-line">Robot · —</div>
+
+  <!-- Modes -->
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-mode="1" role="tab"><span class="num">01</span><span class="name">Random</span></button>
+    <button class="tab" data-mode="2" role="tab"><span class="num">02</span><span class="name">Contact</span></button>
+    <button class="tab" data-mode="6" role="tab"><span class="num">03</span><span class="name">Mirror</span></button>
+    <button class="tab" data-mode="3" role="tab"><span class="num">04</span><span class="name">Animations</span></button>
+    <button class="tab" data-mode="4" role="tab"><span class="num">05</span><span class="name">Joystick</span></button>
+    <button class="tab" data-mode="5" role="tab"><span class="num">06</span><span class="name">Latent</span></button>
+  </nav>
+
+  <main>
+    <!-- Home / Stop -->
+    <section class="panel" id="panel-idle">
+      <p class="eyebrow">00 — Control</p>
+      <h1 class="headline">Choose a mode<br>for the specimen.</h1>
+      <p class="muted">With no phone connected, the robot lives on its own in random mode.</p>
+    </section>
+
+    <!-- 01 Random -->
+    <section class="panel" id="panel-random" hidden>
+      <p class="eyebrow">01 — Random</p>
+      <h1 class="headline">Autonomous<br>behaviour.</h1>
+      <dl class="specs">
+        <div><dt>Head</dt><dd id="spec-head">—</dd></div>
+        <div><dt>Pumps</dt><dd id="spec-pumps">—</dd></div>
+        <div><dt>Link</dt><dd id="spec-link">—</dd></div>
+      </dl>
+    </section>
+
+    <!-- 02 Mimic -->
+    <section class="panel panel-mimic" id="panel-mimic" hidden>
+      <div class="stage">
+        <video id="vid" playsinline muted></video>
+        <canvas id="fx"></canvas>
+        <canvas id="mesh"></canvas>
+        <div class="stage-top">
+          <span id="face-state" class="chip" data-state="idle">Camera off</span>
+          <span id="fps" class="chip">—</span>
+        </div>
+        <div class="stage-bottom">
+          <span>P <b id="val-pitch">0</b>°</span>
+          <span>R <b id="val-roll">0</b>°</span>
+          <span>Y <b id="val-yaw">0</b>°</span>
+        </div>
+      </div>
+      <div class="session"><div id="session-bar"></div></div>
+      <div class="lock-info mono-small">
+        <span>Face <b id="face-size">—</b> / <b id="face-need">35%</b></span>
+        <span>Frontal <b id="face-frontal">—</b></span>
+      </div>
+      <div class="expr">
+        <div class="expr-row"><span class="eyebrow">Expression</span><span id="expr-label" class="expr-name">Neutral</span></div>
+        <div class="bar"><div id="expr-bar" data-expr="0"></div></div>
+      </div>
+      <div class="row-buttons">
+        <button id="btn-calibrate" class="btn">Recenter</button>
+        <button id="btn-mesh" class="btn">Mesh only</button>
+      </div>
+    </section>
+
+    <!-- 03 Animations -->
+    <section class="panel" id="panel-anim" hidden>
+      <p class="eyebrow">04 — Animations</p>
+      <div id="anim-grid" class="anim-grid"></div>
+    </section>
+
+    <!-- 04 Joystick -->
+    <section class="panel" id="panel-joy" hidden>
+      <div class="joy-head">
+        <p class="eyebrow">05 — Joystick</p>
+        <span class="mono-small">Y <b id="joy-yaw">0</b>° · P <b id="joy-pitch">0</b>°</span>
+      </div>
+      <div id="joy" class="joy">
+        <span class="joy-axis joy-axis-h"></span>
+        <span class="joy-axis joy-axis-v"></span>
+        <span class="joy-ring"></span>
+        <span class="joy-label joy-top">Up</span>
+        <span class="joy-label joy-bottom">Down</span>
+        <span class="joy-label joy-left">Left</span>
+        <span class="joy-label joy-right">Right</span>
+        <span id="joy-knob" class="joy-knob"></span>
+      </div>
+      <label class="range">Tilt <output id="joy-roll-val">0°</output>
+        <input id="joy-roll" type="range" min="-25" max="25" step="1" value="0"></label>
+      <label class="range">Pump A <output id="joy-pumpA-val">0</output>
+        <input id="joy-pumpA" type="range" min="0" max="255" step="1" value="0"></label>
+      <label class="range">Pump B <output id="joy-pumpB-val">0</output>
+        <input id="joy-pumpB" type="range" min="0" max="255" step="1" value="0"></label>
+      <div class="row-buttons row-buttons-flat">
+        <button id="joy-hold" class="btn">Hold position</button>
+        <button id="joy-center" class="btn">Center</button>
+      </div>
+    </section>
+    <!-- 05 Latent space -->
+    <section class="panel" id="panel-latent" hidden>
+      <div class="joy-head">
+        <p class="eyebrow">06 — Latent space</p>
+        <span class="mono-small">V <b id="lat-v">0.00</b> · A <b id="lat-a">0.00</b></span>
+      </div>
+      <p id="lat-mix" class="lat-mix">Neutral</p>
+      <canvas id="latent-pad" class="latent-pad"></canvas>
+      <div class="row-buttons row-buttons-flat">
+        <button id="lat-drift" class="btn">Drift</button>
+        <button id="lat-center" class="btn">Neutral</button>
+      </div>
+      <label class="range">Drift speed <output id="lat-speed-val">50%</output>
+        <input id="lat-speed" type="range" min="0" max="100" step="1" value="50"></label>
+      <label class="range">Pumps <output id="lat-pumps-val">100%</output>
+        <input id="lat-pumps" type="range" min="0" max="100" step="1" value="100"></label>
+    </section>
+  </main>
+
+  <!-- Bottom bar -->
+  <footer class="bottom">
+    <button id="btn-qr" class="qr-btn" aria-label="QR codes">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
+      <span>QR</span>
+    </button>
+    <button id="btn-stop" class="stop-btn">Stop</button>
+  </footer>
+
+  <!-- Settings -->
+  <div id="sheet-settings" class="sheet" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head"><span class="eyebrow">Settings</span><button class="icon-btn" data-close>×</button></div>
+
+      <p class="sheet-section">Contact session</p>
+      <label class="range">Session length <output id="sessionSec-val">30s</output>
+        <input id="sessionSec" type="range" min="5" max="120" step="5"></label>
+      <label class="range">Minimum face size <output id="minFaceSize-val">35%</output>
+        <input id="minFaceSize" type="range" min="10" max="80" step="1"></label>
+      <label class="range">Lock time <output id="lockSec-val">2s</output>
+        <input id="lockSec" type="range" min="0.5" max="5" step="0.5"></label>
+      <label class="range">Rest between sessions <output id="cooldownSec-val">8s</output>
+        <input id="cooldownSec" type="range" min="0" max="60" step="1"></label>
+
+      <p class="sheet-section">Contact &amp; Mirror movement</p>
+      <label class="range">Pitch gain <output id="gainPitch-val">1.0</output>
+        <input id="gainPitch" type="range" min="0" max="3" step="0.1"></label>
+      <label class="range">Roll gain <output id="gainRoll-val">1.0</output>
+        <input id="gainRoll" type="range" min="0" max="3" step="0.1"></label>
+      <label class="range">Yaw gain <output id="gainYaw-val">1.0</output>
+        <input id="gainYaw" type="range" min="0" max="3" step="0.1"></label>
+      <label class="switch"><input id="invertPitch" type="checkbox"><span>Invert pitch</span></label>
+      <label class="switch"><input id="invertRoll" type="checkbox"><span>Invert roll</span></label>
+      <label class="switch"><input id="invertYaw" type="checkbox"><span>Invert yaw</span></label>
+      <label class="switch"><input id="pumpsEnabled" type="checkbox"><span>Pumps follow expressions</span></label>
+
+      <p class="sheet-section">QR code colors</p>
+      <div id="qr-presets" class="swatches"></div>
+      <div class="color-row">
+        <label class="color-pick"><input id="qrFg" type="color"><span>Code</span></label>
+        <label class="color-pick"><input id="qrBg" type="color"><span>Background</span></label>
+        <div id="qr-preview" class="qr-preview"></div>
+      </div>
+      <p id="qr-contrast" class="mono-small"></p>
+
+      <p id="stats" class="mono-small">—</p>
+      <p id="app-version" class="mono-small">Version 2026-11-25 · v8 (contact)</p>
+    </div>
+  </div>
+
+  <!-- QR codes -->
+  <div id="sheet-qr" class="sheet sheet-full" hidden>
+    <div class="sheet-body">
+      <div class="sheet-head">
+        <span class="eyebrow">QR codes</span>
+        <div class="seg" id="qr-view">
+          <button data-view="single" class="on">One</button>
+          <button data-view="grid">All</button>
+        </div>
+        <button class="icon-btn" data-close>×</button>
+      </div>
+
+      <div id="qr-empty" class="muted qr-empty">Add a link below to generate a QR code.</div>
+
+      <div id="qr-single" class="qr-single">
+        <button id="qr-card" class="qr-card" aria-label="Show full screen"><div id="qr-big" class="qr-code"></div></button>
+        <div class="qr-caption">
+          <span id="qr-title" class="qr-title"></span>
+          <span id="qr-url" class="mono-small"></span>
+          <span class="mono-small qr-hint">Tap the code for full screen</span>
+        </div>
+        <div class="qr-pager">
+          <button id="qr-prev" class="icon-btn" aria-label="Previous">←</button>
+          <span id="qr-count" class="mono-small"></span>
+          <button id="qr-next" class="icon-btn" aria-label="Next">→</button>
+        </div>
+      </div>
+
+      <div id="qr-grid" class="qr-grid" hidden></div>
+
+      <form id="qr-form" class="qr-form">
+        <input id="qr-input-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Link, e.g. specimens.ai" required>
+        <input id="qr-input-title" type="text" placeholder="Title (optional)">
+        <button type="submit" class="btn btn-solid">Add</button>
+      </form>
+      <ul id="qr-list" class="qr-list"></ul>
+    </div>
+  </div>
+
+  <!-- QR full screen -->
+  <div id="qr-full" class="qr-full" hidden>
+    <div id="qr-full-code" class="qr-full-code"></div>
+    <div class="qr-full-caption">
+      <span id="qr-full-title" class="qr-title"></span>
+      <span id="qr-full-count" class="mono-small"></span>
+    </div>
+  </div>
+
+  <script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+  <script type="module">
+// web/js/config.js
+var CONFIG = {
+  SEND_PERIOD_MS: 20,
+  // 50 Hz en mimétisme
+  MODE_RESEND_MS: 1e3,
+  // le mode choisi est renvoyé chaque seconde
+  STOP_REPEAT: 3,
+  // STOP envoyé 3 fois
+  FACE_LOST_MS: 300,
+  // au-delà, "visage perdu" -> robot au neutre
+  // Limites envoyées (le robot a aussi les siennes)
+  limits: { pitch: 35, roll: 25, yaw: 45 },
+  // Lissage One Euro (plus minCutoff est bas, plus c'est lisse au repos ;
+  // plus beta est haut, moins il y a de retard sur les gestes rapides)
+  oneEuro: { minCutoff: 1, beta: 0.05, dCutoff: 1 },
+  // Mode Mimic : veille -> attirance -> acquisition -> tracking -> repos
+  // (durée de session, taille de visage, temps d'acquisition et repos : dans Settings)
+  mimic: {
+    frontalH: 0.12,
+    // tolérance gauche/droite pour "regarde de face" (0 = parfaitement de face)
+    frontalV: [0.38, 0.72],
+    // plage de hauteur du nez entre front et menton pour "de face"
+    sizeHysteresis: 0.04,
+    // marge sous la taille mini avant d'annuler l'acquisition
+    lostGraceMs: 1e3,
+    // tracking : absence tolérée avant d'arrêter la session
+    attractGraceMs: 600,
+    // attirance : absence tolérée avant de repasser en veille
+    lockingGraceMs: 400,
+    // acquisition : écart toléré (visage perdu, de profil, trop loin)
+    endAnimation: 4,
+    // animation jouée en fin de session (4 = Curious, null = aucune)
+    // Attirance : le robot tourne doucement la tête vers le visage
+    followYaw: 18,
+    // degrés quand le visage est au bord de l'image
+    followPitch: 10,
+    followInvertX: !1,
+    // à passer à true si le robot regarde du mauvais côté
+    followInvertY: !1,
+    followSmoothS: 1,
+    // temps de lissage du suivi (s)
+    recenterSmoothS: 1.8
+    // temps de lissage du recentrage pendant l'acquisition (s)
+  },
+  // Joystick : sens des axes (passe à true si la tête part à l'envers)
+  joystick: { invertX: !1, invertY: !1 },
+  // Détection des expressions (pilote les pompes en mimétisme)
+  expressions: {
+    minScore: 0.2,
+    // en dessous : visage neutre, pompes au repos
+    holdMs: 200,
+    // une nouvelle expression doit tenir ce temps avant d'être adoptée
+    // Amplification par expression (certaines sont naturellement plus faibles)
+    gain: { joy: 1.3, surprise: 1.8, anger: 2.2, sadness: 2.5 }
+  }
+}, DEFAULT_SETTINGS = {
+  gainPitch: 1,
+  gainRoll: 1,
+  gainYaw: 1,
+  invertPitch: !1,
+  invertRoll: !1,
+  invertYaw: !1,
+  // à cocher si la tête tourne à l'envers
+  pumpsEnabled: !0,
+  sessionSec: 30,
+  // durée d'une session de tracking
+  minFaceSize: 35,
+  // taille mini du visage (% de la hauteur de l'image) pour démarrer
+  lockSec: 2,
+  // temps d'acquisition
+  cooldownSec: 8,
+  // repos après une session avant le prochain tracking
+  qrFg: "#000000",
+  // couleur des QR codes
+  qrBg: "#ffffff"
+  // fond des QR codes
+}, QR_PRESETS = [
+  { name: "Classic", fg: "#000000", bg: "#ffffff" },
+  { name: "Inverted", fg: "#ffffff", bg: "#0a0a0a" },
+  { name: "Lime card", fg: "#0a0a0a", bg: "#d4ff3d" },
+  { name: "Lime on black", fg: "#d4ff3d", bg: "#0a0a0a" },
+  { name: "Signal", fg: "#ffffff", bg: "#ff3b30" }
+], KEY = "robot-settings-v1";
+function loadSettings() {
+  try {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+function saveSettings(s) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+  }
+}
+
+// web/js/protocol.js
+var BLE = {
+  NAME: "RobotHead",
+  SERVICE: "6e1a0001-4b52-4f42-9a7e-2f6d1c0b5a10",
+  CONTROL: "6e1a0002-4b52-4f42-9a7e-2f6d1c0b5a10",
+  STATUS: "6e1a0003-4b52-4f42-9a7e-2f6d1c0b5a10"
+}, MODE = { STOP: 0, RANDOM: 1, MIMIC: 2, ANIM: 3, MANUAL: 4 }, MODE_LABEL = { 0: "Stop", 1: "Random", 2: "Mimic", 3: "Animations", 4: "Joystick" }, ANIMS = [
+  { id: 0, name: "Yes", hint: "Nod" },
+  { id: 1, name: "No", hint: "Head shake" },
+  { id: 2, name: "Happy", hint: "Bounces" },
+  { id: 3, name: "Shy", hint: "Looks away" },
+  { id: 4, name: "Curious", hint: "Head tilt" },
+  { id: 5, name: "Surprised", hint: "Startle" },
+  { id: 6, name: "Sad", hint: "Head down" },
+  { id: 7, name: "Angry", hint: "Shakes" }
+], ANIM_NONE = 255, PKT_MODE = 1, PKT_MIMIC = 2, PKT_ANIM = 3;
+function crc8(bytes, len = bytes.length) {
+  let crc = 0;
+  for (let i = 0; i < len; i++) {
+    crc ^= bytes[i];
+    for (let b = 0; b < 8; b++)
+      crc = crc & 128 ? (crc << 1 ^ 7) & 255 : crc << 1 & 255;
+  }
+  return crc;
+}
+var seq = 0, nextSeq = () => seq = seq + 1 & 255, clampByte = (v2) => Math.max(0, Math.min(255, Math.round(v2))), toDeci = (deg) => Math.max(-32768, Math.min(32767, Math.round(deg * 10)));
+function encodeMode(mode) {
+  let b = new Uint8Array(4);
+  return b[0] = PKT_MODE, b[1] = nextSeq(), b[2] = mode, b[3] = crc8(b, 3), b;
+}
+var trigger = 0;
+function encodeAnim(animId) {
+  return trigger = trigger + 1 & 255, encodeAnimWithTrigger(animId, trigger);
+}
+function encodeAnimWithTrigger(animId, trig) {
+  let b = new Uint8Array(5);
+  return b[0] = PKT_ANIM, b[1] = nextSeq(), b[2] = animId, b[3] = trig, b[4] = crc8(b, 4), b;
+}
+var lastAnimTrigger = () => trigger, EXPR = { NEUTRAL: 0, JOY: 1, SURPRISE: 2, ANGER: 3, SADNESS: 4 }, EXPR_LABEL = { 0: "Neutral", 1: "Joy", 2: "Surprise", 3: "Anger", 4: "Sadness" };
+function encodeMimic(m) {
+  let buf = new ArrayBuffer(12), v2 = new DataView(buf), b = new Uint8Array(buf);
+  return b[0] = PKT_MIMIC, b[1] = nextSeq(), b[2] = m.face ? 1 : 0, v2.setInt16(3, toDeci(m.pitch), !0), v2.setInt16(5, toDeci(m.roll), !0), v2.setInt16(7, toDeci(m.yaw), !0), b[9] = m.expression & 255, b[10] = clampByte(m.intensity * 255), b[11] = crc8(b, 11), b;
+}
+function encodeManual(m) {
+  let b = encodeMimic({ face: !0, pitch: m.pitch, roll: m.roll, yaw: m.yaw, expression: 0, intensity: 0 });
+  return b[9] = clampByte(m.pumpA), b[10] = clampByte(m.pumpB), b[11] = crc8(b, 11), b;
+}
+function decodeStatus(dataView) {
+  return dataView.byteLength < 5 ? null : {
+    mode: dataView.getUint8(0),
+    rxPerSec: dataView.getUint8(1),
+    lostPerSec: dataView.getUint8(2),
+    crcErrors: dataView.getUint8(3),
+    macroState: dataView.getUint8(4),
+    pumpMood: dataView.byteLength > 5 ? dataView.getUint8(5) : null,
+    anim: dataView.byteLength > 6 ? dataView.getUint8(6) : ANIM_NONE
+  };
+}
+
+// web/js/ble.js
+var RobotLink = class {
+  constructor() {
+    this.device = null, this.control = null, this.connected = !1, this.wantConnected = !1, this.busy = !1, this.queue = [], this.onState = () => {
+    }, this.onStatus = () => {
+    }, this._retryTimer = null;
+  }
+  static supported() {
+    return !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
+  }
+  // Doit être appelé depuis un clic (exigence du navigateur)
+  async choose() {
+    let device = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [BLE.SERVICE] }]
+    });
+    this._attach(device), await this._connectGatt();
+  }
+  // Reconnexion silencieuse au dernier robot autorisé, si le navigateur le permet
+  async tryRemembered() {
+    if (!navigator.bluetooth.getDevices) return !1;
+    try {
+      let devices = await navigator.bluetooth.getDevices(), robot = devices.find((d) => d.name === BLE.NAME) || devices[0];
+      return robot ? (this._attach(robot), await this._connectGatt(), !0) : !1;
+    } catch {
+      return this._scheduleRetry(), !1;
+    }
+  }
+  _attach(device) {
+    this.device !== device && (this.device && this.device.removeEventListener("gattserverdisconnected", this._onDisc), this.device = device, this.wantConnected = !0, this._onDisc = () => this._handleDisconnect(), device.addEventListener("gattserverdisconnected", this._onDisc));
+  }
+  async _connectGatt() {
+    this.onState("connecting");
+    let service = await (await this.device.gatt.connect()).getPrimaryService(BLE.SERVICE);
+    this.control = await service.getCharacteristic(BLE.CONTROL);
+    let status = await service.getCharacteristic(BLE.STATUS);
+    status.addEventListener("characteristicvaluechanged", (e) => {
+      let s = decodeStatus(e.target.value);
+      s && this.onStatus(s);
+    }), await status.startNotifications(), this.connected = !0, this.busy = !1, this.onState("connected");
+  }
+  _handleDisconnect() {
+    this.connected = !1, this.control = null, this.onState("disconnected"), this._scheduleRetry();
+  }
+  _scheduleRetry(delay = 1500) {
+    !this.wantConnected || !this.device || this._retryTimer || (this._retryTimer = setTimeout(async () => {
+      if (this._retryTimer = null, !(this.connected || !this.wantConnected))
+        try {
+          await this._connectGatt();
+        } catch {
+          this.onState("disconnected"), this._scheduleRetry(Math.min(delay * 1.5, 5e3));
+        }
+    }, delay));
+  }
+  disconnect() {
+    this.wantConnected = !1, this.device && this.device.gatt.connected && this.device.gatt.disconnect();
+  }
+  // --- Envoi ---
+  async _write(bytes) {
+    this.busy = !0;
+    try {
+      await this.control.writeValueWithoutResponse(bytes);
+    } catch {
+    } finally {
+      this.busy = !1, this.queue.length && this.connected && this._write(this.queue.shift());
+    }
+  }
+  sendMode(mode, repeat = 1) {
+    if (!this.connected) return !1;
+    for (let i = 0; i < repeat; i++) this.queue.push(encodeMode(mode));
+    return this.busy || this._write(this.queue.shift()), !0;
+  }
+  // Animation : envoyée deux fois avec le même déclencheur (le robot ne la joue qu'une fois)
+  sendAnim(animId) {
+    return this.connected ? (this.queue.push(encodeAnim(animId)), this.queue.push(encodeAnimWithTrigger(animId, lastAnimTrigger())), this.busy || this._write(this.queue.shift()), !0) : !1;
+  }
+  // Joystick : même règle que le mimétisme
+  sendManual(values) {
+    return !this.connected || this.busy || this.queue.length ? !1 : (this._write(encodeManual(values)), !0);
+  }
+  // Valeurs de mimétisme : si le lien est occupé on saute, la suivante arrive dans 20 ms
+  sendMimic(values) {
+    return !this.connected || this.busy || this.queue.length ? !1 : (this._write(encodeMimic(values)), !0);
+  }
+};
+
+// web/js/tracker.js
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+var WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm", MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task", LM = { left: 234, right: 454, top: 10, bottom: 152, eyeLeft: 130, eyeRight: 359 }, MESH_ALPHA = [0.2, 0.38, 0.65];
+var COLOR_ACQUIRE = "255, 255, 255", COLOR_LOCKED = "212, 255, 61", NOSE = 1, jitter = (i) => {
+  let x = Math.sin(i * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}, DEG = 180 / Math.PI, getPoint = (lms, i, w, h) => ({ x: lms[i].x * w, y: lms[i].y * h, z: lms[i].z * w }), sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }), cross = (a, b) => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }), normalize = (v2) => {
+  let l = Math.hypot(v2.x, v2.y, v2.z);
+  return l === 0 ? v2 : { x: v2.x / l, y: v2.y / l, z: v2.z / l };
+};
+function headAngles(lms, w, h) {
+  let pl = getPoint(lms, LM.left, w, h), pr = getPoint(lms, LM.right, w, h), pt = getPoint(lms, LM.top, w, h), pb = getPoint(lms, LM.bottom, w, h), right = normalize(sub(pr, pl)), up = normalize(sub(pt, pb)), f = normalize(cross(right, up)), fwd = { x: -f.x, y: -f.y, z: -f.z }, yaw = Math.atan2(fwd.x, -fwd.z) * DEG, pitch = Math.atan2(fwd.y, -fwd.z) * DEG, ve = sub(getPoint(lms, LM.eyeRight, w, h), getPoint(lms, LM.eyeLeft, w, h)), roll = Math.atan2(ve.y, ve.x) * DEG;
+  return { yaw, pitch, roll };
+}
+var FaceTracker = class {
+  constructor(video, canvas) {
+    this.overlay = { state: "idle", progress: 0 }, this._lastLms = null, this._dissolve = null, this.trackRgb = null, this.video = video, this.canvas = canvas, this.ctx = canvas.getContext("2d"), this.landmarker = null, this.stream = null, this.running = !1, this.onFrame = () => {
+    }, this.fps = 0, this._frames = 0, this._fpsT = performance.now(), this._lastVideoTime = -1;
+  }
+  async load() {
+    if (this.landmarker) return;
+    let fileset = await FilesetResolver.forVisionTasks(WASM), options = (delegate) => ({
+      baseOptions: { modelAssetPath: MODEL, delegate },
+      runningMode: "VIDEO",
+      numFaces: 1,
+      outputFaceBlendshapes: !0
+    });
+    try {
+      this.landmarker = await FaceLandmarker.createFromOptions(fileset, options("GPU"));
+    } catch {
+      this.landmarker = await FaceLandmarker.createFromOptions(fileset, options("CPU"));
+    }
+  }
+  async start() {
+    if (!(this.running || this._starting)) {
+      this._starting = !0;
+      try {
+        await this.load(), this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: !1
+        }), this.video.srcObject = this.stream, await this.video.play(), this.running = !0, this._loop();
+      } finally {
+        this._starting = !1;
+      }
+    }
+  }
+  stop() {
+    this.running = !1, this.stream && this.stream.getTracks().forEach((t) => t.stop()), this.stream = null, this.video.srcObject = null, this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height), this.fps = 0;
+  }
+  _loop() {
+    if (!this.running) return;
+    let v2 = this.video;
+    if (v2.readyState >= 2 && v2.videoWidth > 0 && v2.currentTime !== this._lastVideoTime) {
+      this._lastVideoTime = v2.currentTime;
+      let now = performance.now();
+      this._handle(this.landmarker.detectForVideo(v2, now), now), this._countFps(now);
+    }
+    requestAnimationFrame(() => this._loop());
+  }
+  _countFps(now) {
+    this._frames++, now - this._fpsT >= 1e3 && (this.fps = Math.round(this._frames * 1e3 / (now - this._fpsT)), this._frames = 0, this._fpsT = now);
+  }
+  // Mesh selon l'état (fourni par l'appli dans this.overlay) :
+  //  idle / cooldown : rien (sauf la dissipation en cours)
+  //  attract  : mesh très discret, blanc
+  //  locking  : le mesh se forme depuis le nez (progress 0 -> 1)
+  //  tracking : mesh complet, couleur d'accent, diffus
+  _drawMesh(lms, w, h) {
+    let { state, progress } = this.overlay;
+    if (state !== "attract" && state !== "locking" && state !== "tracking") return;
+    let tracking = state === "tracking", reveal = state === "attract" || tracking ? 1 : progress, rgb = tracking ? this.trackRgb || COLOR_LOCKED : COLOR_ACQUIRE, fade = state === "attract" ? 0.28 : 1, ctx = this.ctx, unit = Math.max(w, h) / 640, tess = FaceLandmarker.FACE_LANDMARKS_TESSELATION;
+    if (!tess || !lms[NOSE]) return;
+    let zMin = 1 / 0, zMax = -1 / 0, rMax = 0, nx = lms[NOSE].x, ny = lms[NOSE].y;
+    for (let i2 = 0; i2 < 468 && i2 < lms.length; i2++) {
+      let p = lms[i2];
+      p.z < zMin && (zMin = p.z), p.z > zMax && (zMax = p.z);
+      let d = Math.hypot(p.x - nx, p.y - ny);
+      d > rMax && (rMax = d);
+    }
+    let span = zMax - zMin || 1, radius = reveal * rMax * 1.25, band = rMax * 0.08, forming = state === "locking", buckets = [new Path2D(), new Path2D(), new Path2D()], front = new Path2D(), i = 0;
+    for (let c of tess) {
+      i++;
+      let a = lms[c.start], b = lms[c.end];
+      if (!a || !b) continue;
+      let d = Math.hypot((a.x + b.x) / 2 - nx, (a.y + b.y) / 2 - ny) + jitter(i) * rMax * 0.15;
+      if (d > radius) continue;
+      let near = 1 - ((a.z + b.z) / 2 - zMin) / span, target = forming && radius - d < band ? front : buckets[near > 0.66 ? 2 : near > 0.33 ? 1 : 0];
+      target.moveTo(a.x * w, a.y * h), target.lineTo(b.x * w, b.y * h);
+    }
+    ctx.lineJoin = "round", ctx.lineCap = "round";
+    let passes = [
+      { width: 2.6 * unit, alpha: 0.35 },
+      { width: 0.9 * unit, alpha: 0.8 }
+    ];
+    for (let pass of passes)
+      ctx.lineWidth = pass.width, buckets.forEach((path, k) => {
+        ctx.strokeStyle = `rgba(${rgb}, ${MESH_ALPHA[k] * pass.alpha * fade})`, ctx.stroke(path);
+      }), forming && (ctx.strokeStyle = `rgba(212, 255, 61, ${0.85 * pass.alpha})`, ctx.stroke(front));
+    this.canvas.style.filter = "", this._lastLms = lms, this._lastRgb = rgb;
+  }
+  // Lance la dissipation du dernier mesh affiché (fin de session de tracking)
+  dissolve(durationMs = 1800) {
+    if (!this._lastLms) return;
+    let pts = this._lastLms.map((p, i) => {
+      let ang = jitter(i + 7) * Math.PI * 2, sp = 0.02 + jitter(i + 13) * 0.06;
+      return { x: p.x, y: p.y, z: p.z, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.01 };
+    });
+    this._dissolve = { pts, start: performance.now(), dur: durationMs, rgb: this._lastRgb || COLOR_LOCKED };
+  }
+  _drawDissolve(w, h) {
+    let D = this._dissolve;
+    if (!D) return;
+    let tau = (performance.now() - D.start) / D.dur;
+    if (tau >= 1) {
+      this._dissolve = null, this.canvas.style.filter = "";
+      return;
+    }
+    let ctx = this.ctx, unit = Math.max(w, h) / 640, tess = FaceLandmarker.FACE_LANDMARKS_TESSELATION;
+    if (!tess) return;
+    let ease = tau * tau, pos = (p) => ({
+      x: (p.x + p.vx * tau + (p.x - 0.5) * 0.15 * ease) * w,
+      y: (p.y + p.vy * tau + 0.06 * ease) * h
+    }), paths = [new Path2D(), new Path2D(), new Path2D()], i = 0;
+    for (let c of tess) {
+      i++;
+      let local = (tau - jitter(i + 3) * 0.6) / 0.4;
+      if (local >= 1) continue;
+      let a = D.pts[c.start], b = D.pts[c.end];
+      if (!a || !b) continue;
+      let k = local < 0 ? 2 : local < 0.5 ? 1 : 0, pa = pos(a), pb = pos(b), shrink = Math.max(0, local) * 0.5, mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+      paths[k].moveTo(pa.x + (mx - pa.x) * shrink, pa.y + (my - pa.y) * shrink), paths[k].lineTo(pb.x + (mx - pb.x) * shrink, pb.y + (my - pb.y) * shrink);
+    }
+    ctx.lineCap = "round", this.canvas.style.filter = `blur(${(1.2 + 5 * tau).toFixed(2)}px)`, ctx.lineWidth = 1.2 * unit;
+    let alphas = [0.15, 0.35, 0.6];
+    paths.forEach((p, k) => {
+      ctx.strokeStyle = `rgba(${D.rgb}, ${alphas[k] * (1 - tau)})`, ctx.stroke(p);
+    });
+  }
+  // Mesures du visage pour décider du tracking
+  _metrics(lms) {
+    let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+    for (let i = 0; i < 468 && i < lms.length; i++) {
+      let p = lms[i];
+      p.x < x0 && (x0 = p.x), p.x > x1 && (x1 = p.x), p.y < y0 && (y0 = p.y), p.y > y1 && (y1 = p.y);
+    }
+    let L = lms[234], R = lms[454], T = lms[10], B = lms[152], N = lms[NOSE], h = (N.x - L.x) / (R.x - L.x || 1e-6) - 0.5, v2 = (N.y - T.y) / (B.y - T.y || 1e-6);
+    return {
+      cx: (x0 + x1) / 2,
+      cy: (y0 + y1) / 2,
+      size: y1 - y0,
+      // hauteur du visage / hauteur de l'image
+      frontalH: h,
+      // 0 = de face, ±0.5 = de profil
+      frontalV: v2
+      // ~0.55 de face
+    };
+  }
+  _handle(res, now) {
+    let c = this.canvas, w = this.video.videoWidth, h = this.video.videoHeight;
+    if ((c.width !== w || c.height !== h) && (c.width = w, c.height = h), this.ctx.clearRect(0, 0, w, h), this._drawDissolve(w, h), !res.faceLandmarks || res.faceLandmarks.length === 0) {
+      this.onFrame({ face: !1, t: now / 1e3, vw: w, vh: h });
+      return;
+    }
+    let lms = res.faceLandmarks[0];
+    this._drawMesh(lms, w, h);
+    let bs = {};
+    if (res.faceBlendshapes && res.faceBlendshapes[0])
+      for (let cat of res.faceBlendshapes[0].categories) bs[cat.categoryName] = cat.score;
+    this.onFrame({ face: !0, ...headAngles(lms, w, h), ...this._metrics(lms), bs, lms, vw: w, vh: h, t: now / 1e3 });
+  }
+};
+
+// web/js/filters.js
+var LowPass = class {
+  constructor() {
+    this.y = null;
+  }
+  filter(x, alpha) {
+    return this.y = this.y === null ? x : alpha * x + (1 - alpha) * this.y, this.y;
+  }
+}, alphaFor = (cutoff, dt) => 1 / (1 + 1 / (2 * Math.PI * cutoff) / dt), OneEuro = class {
+  constructor({ minCutoff = 1, beta = 0.05, dCutoff = 1 } = {}) {
+    this.minCutoff = minCutoff, this.beta = beta, this.dCutoff = dCutoff, this.reset();
+  }
+  reset() {
+    this.x = new LowPass(), this.dx = new LowPass(), this.lastT = null, this.lastRaw = null;
+  }
+  // t en secondes
+  filter(value, t) {
+    if (this.lastT === null)
+      return this.lastT = t, this.lastRaw = value, this.dx.filter(0, 1), this.x.filter(value, 1);
+    let dt = Math.max(1e-3, t - this.lastT);
+    this.lastT = t;
+    let d = (value - this.lastRaw) / dt;
+    this.lastRaw = value;
+    let edx = this.dx.filter(d, alphaFor(this.dCutoff, dt)), cutoff = this.minCutoff + this.beta * Math.abs(edx);
+    return this.x.filter(value, alphaFor(cutoff, dt));
+  }
+};
+
+// web/js/expressions.js
+var v = (bs, name) => bs[name] || 0, avg = (bs, a, b) => (v(bs, a) + v(bs, b)) / 2, clamp01 = (x) => Math.max(0, Math.min(1, x));
+function rawScores(bs) {
+  return {
+    joy: avg(bs, "mouthSmileLeft", "mouthSmileRight"),
+    surprise: (v(bs, "browInnerUp") + avg(bs, "eyeWideLeft", "eyeWideRight") + v(bs, "jawOpen")) / 3,
+    anger: (avg(bs, "browDownLeft", "browDownRight") + avg(bs, "noseSneerLeft", "noseSneerRight") + avg(bs, "mouthPressLeft", "mouthPressRight")) / 3,
+    sadness: avg(bs, "mouthFrownLeft", "mouthFrownRight") * 0.7 + v(bs, "browInnerUp") * 0.3
+  };
+}
+var CODE = { joy: EXPR.JOY, surprise: EXPR.SURPRISE, anger: EXPR.ANGER, sadness: EXPR.SADNESS }, ExpressionDetector = class {
+  constructor() {
+    this.baseline = null, this.current = EXPR.NEUTRAL, this.candidate = EXPR.NEUTRAL, this.candidateSince = 0, this.intensityFilter = new OneEuro({ minCutoff: 1.5, beta: 0.3, dCutoff: 1 }), this.scores = { joy: 0, surprise: 0, anger: 0, sadness: 0 };
+  }
+  // Le visage actuel devient la référence "neutre" (bouton Recentrer)
+  calibrate(bs) {
+    this.baseline = rawScores(bs), this.current = EXPR.NEUTRAL, this.candidate = EXPR.NEUTRAL, this.intensityFilter.reset();
+  }
+  // t en secondes ; renvoie { expression, intensity (0..1), scores }
+  update(bs, t) {
+    let raw = rawScores(bs);
+    this.baseline || (this.baseline = raw);
+    let { gain, minScore, holdMs } = CONFIG.expressions, best = "neutral", bestScore = 0;
+    for (let k of Object.keys(raw)) {
+      let base = Math.min(this.baseline[k], 0.9), s = clamp01((raw[k] - base) / (1 - base) * gain[k]);
+      this.scores[k] = s, s > bestScore && (best = k, bestScore = s);
+    }
+    let winner = bestScore >= minScore ? CODE[best] : EXPR.NEUTRAL;
+    winner !== this.candidate && (this.candidate = winner, this.candidateSince = t), this.candidate !== this.current && (t - this.candidateSince) * 1e3 >= holdMs && (this.current = this.candidate);
+    let key = Object.keys(CODE).find((k) => CODE[k] === this.current), target = key ? this.scores[key] : 0, intensity = clamp01(this.intensityFilter.filter(target, t));
+    return { expression: this.current, intensity, scores: this.scores };
+  }
+};
+
+// web/js/qr.js
+var KEY2 = "robot-qr-links-v1", $ = (id) => document.getElementById(id);
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(KEY2) || "[]");
+  } catch {
+    return [];
+  }
+}
+function save(links) {
+  try {
+    localStorage.setItem(KEY2, JSON.stringify(links));
+  } catch {
+  }
+}
+function qrSvg(text, fg = "#000000", bg = "#ffffff", quiet = 2) {
+  let qr2 = window.qrcode(0, "M");
+  window.qrcode.stringToBytes = window.qrcode.stringToBytesFuncs["UTF-8"], qr2.addData(text, "Byte"), qr2.make();
+  let n = qr2.getModuleCount(), d = "";
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      qr2.isDark(r, c) && (d += `M${c} ${r}h1v1h-1z`);
+  let s = n + quiet * 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-quiet} ${-quiet} ${s} ${s}" shape-rendering="crispEdges"><rect x="${-quiet}" y="${-quiet}" width="${s}" height="${s}" fill="${bg}"/><path d="${d}" fill="${fg}"/></svg>`;
+}
+function luminance(hex) {
+  let v2 = hex.replace("#", ""), ch = [0, 2, 4].map((i) => parseInt(v2.substr(i, 2), 16) / 255).map((x) => x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function contrastNote(fg, bg) {
+  let lf = luminance(fg), lb = luminance(bg);
+  return (Math.max(lf, lb) + 0.05) / (Math.min(lf, lb) + 0.05) < 3 ? "Low contrast: the code may not scan." : lf > lb ? "Light code on dark background: most phones scan it, some older ones do not." : "Good contrast.";
+}
+var textOn = (bg) => luminance(bg) > 0.4 ? "#0a0a0a" : "#ededed", escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]), labelOf = (l) => l.title || l.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+function initQr({ getColors }) {
+  let links = load(), index = 0, view = "single", sheet = $("sheet-qr"), full = $("qr-full"), count = () => `${String(index + 1).padStart(2, "0")} / ${String(links.length).padStart(2, "0")}`;
+  function render2() {
+    let { fg, bg } = getColors(), has = links.length > 0;
+    if (index = Math.min(index, Math.max(0, links.length - 1)), $("qr-empty").hidden = has, $("qr-single").hidden = !has || view !== "single", $("qr-grid").hidden = !has || view !== "grid", has && view === "single") {
+      let l = links[index];
+      $("qr-card").style.background = bg, $("qr-big").innerHTML = qrSvg(l.url, fg, bg), $("qr-title").textContent = labelOf(l), $("qr-url").textContent = l.url, $("qr-count").textContent = count(), $("qr-prev").style.visibility = links.length > 1 ? "visible" : "hidden", $("qr-next").style.visibility = links.length > 1 ? "visible" : "hidden";
+    }
+    has && view === "grid" && ($("qr-grid").innerHTML = links.map((l, i) => `
+        <figure data-i="${i}">
+          <div class="qr-card" style="background:${bg}"><div class="qr-code">${qrSvg(l.url, fg, bg)}</div></div>
+          <figcaption>${escapeHtml(labelOf(l))}</figcaption>
+        </figure>`).join("")), $("qr-list").innerHTML = links.map((l, i) => `
+      <li class="${i === index ? "current" : ""}" data-i="${i}">
+        <div class="qr-li-text">
+          <span class="qr-li-title">${escapeHtml(labelOf(l))}</span>
+          <span class="mono-small">${escapeHtml(l.url)}</span>
+        </div>
+        <button class="icon-btn" data-del="${i}" aria-label="Delete">\xD7</button>
+      </li>`).join(""), full.hidden || renderFull();
+  }
+  function renderFull() {
+    if (!links.length) return closeFull();
+    let { fg, bg } = getColors(), l = links[index];
+    full.style.background = bg, full.style.color = textOn(bg), $("qr-full-code").innerHTML = qrSvg(l.url, fg, bg, 3), $("qr-full-title").textContent = labelOf(l), $("qr-full-count").textContent = links.length > 1 ? count() : "";
+  }
+  function openFull(i) {
+    i !== void 0 && (index = i), full.hidden = !1, renderFull();
+    try {
+      full.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {
+      });
+    } catch {
+    }
+  }
+  function closeFull() {
+    full.hidden = !0, document.fullscreenElement && document.exitFullscreen().catch(() => {
+    });
+  }
+  document.addEventListener("fullscreenchange", () => {
+    !document.fullscreenElement && !full.hidden && (full.hidden = !0);
+  });
+  let step = (d) => {
+    links.length < 2 || (index = (index + d + links.length) % links.length, render2());
+  };
+  function swipeable(el, onTap) {
+    let startX = null, moved = !1;
+    el.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX, moved = !1;
+    }, { passive: !0 }), el.addEventListener("touchend", (e) => {
+      if (startX === null) return;
+      let dx = e.changedTouches[0].clientX - startX;
+      Math.abs(dx) > 40 && (moved = !0, step(dx < 0 ? 1 : -1)), startX = null;
+    }), el.addEventListener("click", () => {
+      moved || onTap(), moved = !1;
+    });
+  }
+  return swipeable($("qr-card"), () => openFull()), swipeable(full, () => closeFull()), $("btn-qr").addEventListener("click", () => {
+    sheet.hidden = !1, render2();
+  }), sheet.querySelector("[data-close]").addEventListener("click", () => {
+    sheet.hidden = !0;
+  }), $("qr-prev").addEventListener("click", () => step(-1)), $("qr-next").addEventListener("click", () => step(1)), $("qr-view").addEventListener("click", (e) => {
+    let b = e.target.closest("button[data-view]");
+    b && (view = b.dataset.view, $("qr-view").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)), render2());
+  }), $("qr-grid").addEventListener("click", (e) => {
+    let f = e.target.closest("figure[data-i]");
+    f && openFull(Number(f.dataset.i));
+  }), $("qr-list").addEventListener("click", (e) => {
+    let del = e.target.closest("[data-del]");
+    if (del) {
+      links.splice(Number(del.dataset.del), 1), save(links), render2();
+      return;
+    }
+    let li = e.target.closest("li[data-i]");
+    li && (index = Number(li.dataset.i), render2());
+  }), $("qr-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    let url = $("qr-input-url").value.trim();
+    url && (/^[a-z][a-z0-9+.-]*:/i.test(url) || (url = `https://${url}`), links.push({ url, title: $("qr-input-title").value.trim() }), save(links), index = links.length - 1, $("qr-input-url").value = "", $("qr-input-title").value = "", render2());
+  }), { refresh: render2 };
+}
+
+// web/js/latent.js
+var EMOTIONS = [
+  { name: "Neutral", v: 0, a: 0, p: { pitch: 0, roll: 0, yaw: 0, wander: 4, speed: 0.6, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 0, shakeF: 1, jitter: 0, pump: 0.2, pulse: 0.1, pulseF: 0.3, alt: 0.2 } },
+  { name: "Happy", v: 0.75, a: 0.45, p: { pitch: 8, roll: 0, yaw: 0, wander: 8, speed: 1.2, nod: 4, nodF: 2.2, sway: 5, swayF: 1.1, shake: 0, shakeF: 1, jitter: 0, pump: 0.6, pulse: 0.3, pulseF: 1.5, alt: 0.8 } },
+  { name: "Excited", v: 0.55, a: 0.9, p: { pitch: 12, roll: 0, yaw: 0, wander: 10, speed: 2, nod: 6, nodF: 3, sway: 4, swayF: 1.5, shake: 0, shakeF: 1, jitter: 1.5, pump: 0.95, pulse: 0.4, pulseF: 3, alt: 0.6 } },
+  { name: "Surprised", v: 0.05, a: 0.85, p: { pitch: 18, roll: 0, yaw: 0, wander: 3, speed: 1.5, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 0, shakeF: 1, jitter: 1, pump: 0.85, pulse: 0.2, pulseF: 2, alt: 0 } },
+  { name: "Anxious", v: -0.45, a: 0.8, p: { pitch: -6, roll: -6, yaw: 8, wander: 6, speed: 2.2, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 1.5, shakeF: 2, jitter: 2.5, pump: 0.7, pulse: 0.5, pulseF: 5, alt: 0.3 } },
+  { name: "Angry", v: -0.75, a: 0.65, p: { pitch: -10, roll: 0, yaw: 0, wander: 3, speed: 1.5, nod: 2, nodF: 4, sway: 0, swayF: 0.5, shake: 2, shakeF: 2.5, jitter: 1.5, pump: 0.9, pulse: 0.6, pulseF: 4, alt: 0.1 } },
+  { name: "Sad", v: -0.7, a: -0.5, p: { pitch: -25, roll: -8, yaw: 0, wander: 3, speed: 0.4, nod: 0, nodF: 1, sway: 2, swayF: 0.3, shake: 0, shakeF: 1, jitter: 0, pump: 0.35, pulse: 0.15, pulseF: 0.4, alt: 0 } },
+  { name: "Tired", v: -0.25, a: -0.85, p: { pitch: -15, roll: 6, yaw: 0, wander: 5, speed: 0.3, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 0, shakeF: 1, jitter: 0, pump: 0.15, pulse: 0.1, pulseF: 0.2, alt: 0 } },
+  { name: "Shy", v: -0.2, a: -0.25, p: { pitch: -15, roll: 8, yaw: 18, wander: 4, speed: 0.5, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 0, shakeF: 1, jitter: 0.5, pump: 0.3, pulse: 0.2, pulseF: 0.6, alt: 0.2 } },
+  { name: "Calm", v: 0.55, a: -0.6, p: { pitch: 2, roll: 3, yaw: 0, wander: 6, speed: 0.35, nod: 0, nodF: 1, sway: 3, swayF: 0.25, shake: 0, shakeF: 1, jitter: 0, pump: 0.3, pulse: 0.25, pulseF: 0.3, alt: 0.5 } },
+  { name: "Content", v: 0.8, a: -0.15, p: { pitch: 5, roll: 4, yaw: 0, wander: 7, speed: 0.6, nod: 0, nodF: 1, sway: 4, swayF: 0.5, shake: 0, shakeF: 1, jitter: 0, pump: 0.45, pulse: 0.25, pulseF: 0.7, alt: 0.7 } },
+  { name: "Curious", v: 0.3, a: 0.3, p: { pitch: 6, roll: 14, yaw: 0, wander: 10, speed: 1, nod: 0, nodF: 1, sway: 0, swayF: 0.5, shake: 0, shakeF: 1, jitter: 0.3, pump: 0.5, pulse: 0.3, pulseF: 1.2, alt: 0.4 } }
+], KEYS = Object.keys(EMOTIONS[0].p), SIGMA = 0.33, TAU = Math.PI * 2, clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+function blend(v2, a) {
+  let w = EMOTIONS.map((e) => Math.exp(-((e.v - v2) ** 2 + (e.a - a) ** 2) / (2 * SIGMA * SIGMA))), sum = w.reduce((x, y) => x + y, 0) || 1, params = {};
+  for (let k of KEYS) params[k] = EMOTIONS.reduce((acc, e, i) => acc + e.p[k] * w[i], 0) / sum;
+  return { params, weights: w.map((x) => x / sum) };
+}
+var LatentEngine = class {
+  constructor(limits) {
+    this.limits = limits, this.pos = { v: 0, a: 0 }, this.target = { v: 0, a: 0 }, this.drift = !1, this.driftSpeed = 0.5, this.pumpLevel = 1, this.yawLimit = 25, this.t = 0, this.ph = { nod: 0, sway: 0, shake: 0, pulse: 0, wander: 0 }, this.jit = { p: 0, r: 0, y: 0, tp: 0, tr: 0, ty: 0, next: 0 }, this.driftVel = { v: 0, a: 0 }, this.out = { pitch: 0, roll: 0, yaw: 0, pumpA: 0, pumpB: 0 }, this.mix = blend(0, 0), this.trail = [];
+  }
+  setTarget(v2, a) {
+    this.target.v = clamp(v2, -1, 1), this.target.a = clamp(a, -1, 1);
+  }
+  // Dérive : marche aléatoire douce, qui reste dans le plan
+  _driftStep(dt) {
+    let s = 0.15 + this.driftSpeed * 0.6;
+    this.driftVel.v += (Math.random() - 0.5) * 2.2 * dt * s - this.target.v * 0.25 * dt, this.driftVel.a += (Math.random() - 0.5) * 2.2 * dt * s - this.target.a * 0.25 * dt;
+    let max = 0.35 * s, n = Math.hypot(this.driftVel.v, this.driftVel.a);
+    n > max && (this.driftVel.v *= max / n, this.driftVel.a *= max / n);
+    let v2 = this.target.v + this.driftVel.v * dt, a = this.target.a + this.driftVel.a * dt;
+    Math.abs(v2) > 0.95 && (this.driftVel.v *= -1, v2 = clamp(v2, -0.95, 0.95)), Math.abs(a) > 0.95 && (this.driftVel.a *= -1, a = clamp(a, -0.95, 0.95)), this.target.v = v2, this.target.a = a;
+  }
+  step(dt) {
+    this.t += dt, this.drift && this._driftStep(dt);
+    let k = 1 - Math.exp(-dt * 3);
+    this.pos.v += (this.target.v - this.pos.v) * k, this.pos.a += (this.target.a - this.pos.a) * k, this.mix = blend(this.pos.v, this.pos.a);
+    let P = this.mix.params;
+    this.ph.nod += TAU * P.nodF * dt, this.ph.sway += TAU * P.swayF * dt, this.ph.shake += TAU * P.shakeF * dt, this.ph.pulse += TAU * P.pulseF * dt, this.ph.wander += P.speed * dt;
+    let w = this.ph.wander, J = this.jit;
+    this.t >= J.next && (J.tp = (Math.random() - 0.5) * 2 * P.jitter, J.tr = (Math.random() - 0.5) * 2 * P.jitter, J.ty = (Math.random() - 0.5) * 2 * P.jitter * 0.25, J.next = this.t + 0.08 + Math.random() * 0.25);
+    let kj = 1 - Math.exp(-dt * 12);
+    J.p += (J.tp - J.p) * kj, J.r += (J.tr - J.r) * kj, J.y += (J.ty - J.y) * kj;
+    let pitch = P.pitch + P.wander * 0.5 * (0.6 * Math.sin(w) + 0.4 * Math.sin(2.3 * w + 1)) + P.nod * Math.sin(this.ph.nod) + J.p, roll = P.roll + P.wander * 0.4 * Math.sin(0.9 * w + 4) + P.sway * Math.sin(this.ph.sway) + J.r, yaw = P.yaw + P.wander * (0.7 * Math.sin(0.7 * w + 2) + 0.3 * Math.sin(1.9 * w)) + P.shake * Math.sin(this.ph.shake) + J.y, ko = 1 - Math.exp(-dt * 10), L = this.limits;
+    this.out.pitch += (clamp(pitch, -L.pitch, L.pitch) - this.out.pitch) * ko, this.out.roll += (clamp(roll, -L.roll, L.roll) - this.out.roll) * ko;
+    let koYaw = 1 - Math.exp(-dt * 5);
+    this.out.yaw += (clamp(yaw, -this.yawLimit, this.yawLimit) - this.out.yaw) * koYaw;
+    let pa = clamp(P.pump + P.pulse * Math.sin(this.ph.pulse), 0, 1), pb = clamp(P.pump + P.pulse * Math.sin(this.ph.pulse + Math.PI * P.alt), 0, 1);
+    this.out.pumpA = pa * this.pumpLevel * 255, this.out.pumpB = pb * this.pumpLevel * 255, this.trail.push({ v: this.pos.v, a: this.pos.a }), this.trail.length > 140 && this.trail.shift();
+  }
+  // Les 3 émotions qui pèsent le plus, pour l'affichage
+  topMix(n = 3) {
+    return this.mix.weights.map((w, i) => ({ name: EMOTIONS[i].name, w })).sort((x, y) => y.w - x.w).slice(0, n);
+  }
+};
+function initLatentPad(canvas, engine, { onTouch } = {}) {
+  let ctx = canvas.getContext("2d"), dragging = !1, toPlane = (e) => {
+    let r = canvas.getBoundingClientRect(), pad = r.width * 0.06, v2 = (e.clientX - r.left - pad) / (r.width - 2 * pad) * 2 - 1, a = 1 - (e.clientY - r.top - pad) / (r.height - 2 * pad) * 2;
+    return { v: clamp(v2, -1, 1), a: clamp(a, -1, 1) };
+  };
+  canvas.addEventListener("pointerdown", (e) => {
+    dragging = !0, canvas.setPointerCapture(e.pointerId);
+    let p = toPlane(e);
+    engine.setTarget(p.v, p.a), onTouch?.();
+  }), canvas.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    let p = toPlane(e);
+    engine.setTarget(p.v, p.a);
+  });
+  let up = () => {
+    dragging = !1;
+  };
+  canvas.addEventListener("pointerup", up), canvas.addEventListener("pointercancel", up);
+  function draw() {
+    let dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W) return;
+    canvas.width !== W * dpr && (canvas.width = W * dpr, canvas.height = H * dpr), ctx.setTransform(dpr, 0, 0, dpr, 0, 0), ctx.clearRect(0, 0, W, H);
+    let pad = W * 0.06, X = (v2) => pad + (v2 + 1) / 2 * (W - 2 * pad), Y = (a) => pad + (1 - (a + 1) / 2) * (H - 2 * pad), css = getComputedStyle(document.documentElement), line = css.getPropertyValue("--line").trim() || "#222", muted = css.getPropertyValue("--muted").trim() || "#777", text = css.getPropertyValue("--text").trim() || "#eee", accent = css.getPropertyValue("--accent").trim() || "#d4ff3d", mono = css.getPropertyValue("--mono").trim() || "monospace";
+    ctx.strokeStyle = line, ctx.lineWidth = 1, ctx.beginPath();
+    for (let i = -1; i <= 1; i += 0.5)
+      ctx.moveTo(X(i), Y(-1)), ctx.lineTo(X(i), Y(1)), ctx.moveTo(X(-1), Y(i)), ctx.lineTo(X(1), Y(i));
+    ctx.stroke(), ctx.strokeStyle = muted, ctx.globalAlpha = 0.5, ctx.beginPath(), ctx.moveTo(X(0), Y(-1)), ctx.lineTo(X(0), Y(1)), ctx.moveTo(X(-1), Y(0)), ctx.lineTo(X(1), Y(0)), ctx.stroke(), ctx.globalAlpha = 1, ctx.font = `10px ${mono}`, ctx.fillStyle = muted, ctx.textBaseline = "middle", ctx.textAlign = "center", ctx.fillText("HIGH AROUSAL", X(0), pad * 0.45), ctx.fillText("LOW AROUSAL", X(0), H - pad * 0.45), ctx.save(), ctx.translate(pad * 0.45, Y(0)), ctx.rotate(-Math.PI / 2), ctx.fillText("NEGATIVE", 0, 0), ctx.restore(), ctx.save(), ctx.translate(W - pad * 0.45, Y(0)), ctx.rotate(Math.PI / 2), ctx.fillText("POSITIVE", 0, 0), ctx.restore();
+    let weights = engine.mix.weights;
+    ctx.font = `12px ${getComputedStyle(document.body).fontFamily}`, EMOTIONS.forEach((e, i) => {
+      let x = X(e.v), y = Y(e.a), w = weights[i];
+      ctx.globalAlpha = 0.35 + 0.65 * Math.min(1, w * 2.5), ctx.fillStyle = text, ctx.beginPath(), ctx.arc(x, y, 2.5 + 3 * w, 0, TAU), ctx.fill(), ctx.textAlign = e.v > 0.6 ? "right" : "left", ctx.fillText(e.name, x + (e.v > 0.6 ? -8 : 8), y - 9);
+    }), ctx.globalAlpha = 1;
+    let tr = engine.trail;
+    for (let i = 1; i < tr.length; i++)
+      ctx.strokeStyle = accent, ctx.globalAlpha = i / tr.length * 0.6, ctx.lineWidth = 1.5, ctx.beginPath(), ctx.moveTo(X(tr[i - 1].v), Y(tr[i - 1].a)), ctx.lineTo(X(tr[i].v), Y(tr[i].a)), ctx.stroke();
+    ctx.globalAlpha = 1;
+    let { pos, target } = engine;
+    Math.hypot(pos.v - target.v, pos.a - target.a) > 0.03 && (ctx.strokeStyle = muted, ctx.beginPath(), ctx.arc(X(target.v), Y(target.a), 6, 0, TAU), ctx.stroke()), ctx.fillStyle = accent, ctx.shadowColor = accent, ctx.shadowBlur = 16, ctx.beginPath(), ctx.arc(X(pos.v), Y(pos.a), 9, 0, TAU), ctx.fill(), ctx.shadowBlur = 0;
+  }
+  return { draw };
+}
+
+// web/js/fx.js
+var PALETTES = {
+  [EXPR.NEUTRAL]: [[212, 255, 61], [235, 245, 255]],
+  // fluo / blanc
+  [EXPR.JOY]: [[255, 176, 32], [255, 92, 160]],
+  // ambre / rose
+  [EXPR.SURPRISE]: [[0, 229, 255], [130, 140, 255]],
+  // cyan / pervenche
+  [EXPR.ANGER]: [[255, 59, 48], [255, 0, 150]],
+  // rouge / magenta
+  [EXPR.SADNESS]: [[70, 90, 255], [170, 90, 255]]
+  // bleu / violet
+}, RD_PARAMS = {
+  [EXPR.NEUTRAL]: { f: 0.0545, k: 0.062 },
+  // corail
+  [EXPR.JOY]: { f: 0.0367, k: 0.0649 },
+  // cellules qui se divisent
+  [EXPR.SURPRISE]: { f: 0.025, k: 0.06 },
+  // ondes
+  [EXPR.ANGER]: { f: 0.026, k: 0.051 },
+  // chaos
+  [EXPR.SADNESS]: { f: 0.058, k: 0.065 }
+  // filaments lents
+}, lerp = (a, b, t) => a + (b - a) * t, lerp3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)], ContactFx = class {
+  constructor(fieldCanvas) {
+    this.canvas = fieldCanvas, this.ctx = fieldCanvas.getContext("2d"), this.gw = 0, this.gh = 0, this.palette = [PALETTES[EXPR.NEUTRAL][0].slice(), PALETTES[EXPR.NEUTRAL][1].slice()], this.rd = { ...RD_PARAMS[EXPR.NEUTRAL] }, this.energy = 0, this.active = !1, this.particles = [], this.lastT = 0;
+  }
+  // Grille à la proportion de la vidéo (largeur 96 cellules)
+  _resize(vw, vh) {
+    let gh = Math.max(32, Math.round(96 * vh / vw));
+    if (this.gw === 96 && gh === this.gh) return;
+    this.gw = 96, this.gh = gh;
+    let n = 96 * gh;
+    this.U = new Float32Array(n).fill(1), this.V = new Float32Array(n), this.U2 = new Float32Array(n), this.V2 = new Float32Array(n), this.canvas.width = 96, this.canvas.height = gh, this.img = this.ctx.createImageData(96, gh), this.kill = new Float32Array(n);
+  }
+  clear() {
+    this.U && (this.U.fill(1), this.V.fill(0)), this.particles = [], this.energy = 0, this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+  // Couleur et texture visées selon l'expression (intensité 0..1)
+  _targets(expression, intensity) {
+    let base = PALETTES[EXPR.NEUTRAL], pal = PALETTES[expression] || base, k = expression === EXPR.NEUTRAL ? 0 : Math.min(1, 0.35 + intensity), rdB = RD_PARAMS[EXPR.NEUTRAL], rdE = RD_PARAMS[expression] || rdB;
+    return {
+      c1: lerp3(base[0], pal[0], k),
+      c2: lerp3(base[1], pal[1], k),
+      f: lerp(rdB.f, rdE.f, k),
+      k: lerp(rdB.k, rdE.k, k)
+    };
+  }
+  // Couleur principale actuelle, pour le mesh ("r, g, b")
+  meshRgb() {
+    let c = this.palette[0];
+    return `${Math.round(c[0])}, ${Math.round(c[1])}, ${Math.round(c[2])}`;
+  }
+  // Appelé à chaque image vidéo. lms = points du visage (ou null), t en secondes.
+  update({ lms, vw, vh, expression = EXPR.NEUTRAL, intensity = 0, t }) {
+    if (!vw || !vh) return;
+    this._resize(vw, vh);
+    let dt = Math.min(0.1, Math.max(1e-3, t - (this.lastT || t)));
+    this.lastT = t;
+    let tg = this._targets(expression, intensity), a = 1 - Math.exp(-dt / 0.6);
+    if (this.palette[0] = lerp3(this.palette[0], tg.c1, a), this.palette[1] = lerp3(this.palette[1], tg.c2, a), this.rd.f = lerp(this.rd.f, tg.f, a), this.rd.k = lerp(this.rd.k, tg.k, a), this.energy = this.active ? Math.min(1, this.energy + dt / 1.2) : Math.max(0, this.energy - dt / 2.5), this.energy <= 0 && !this.particles.length) {
+      this._wasOn && (this.clear(), this._wasOn = !1);
+      return;
+    }
+    this._wasOn = !0, this.active && lms && this._seed(lms), this._step(this.active ? 8 : 6), this._render();
+  }
+  // Semis : de la substance V autour des points du visage
+  _seed(lms) {
+    let { gw, gh, V, U } = this, cx = 0, cy = 0, n = 0, r = 0;
+    for (let i = 0; i < lms.length; i += 12)
+      cx += lms[i].x, cy += lms[i].y, n++;
+    cx = cx / n * gw, cy = cy / n * gh;
+    for (let i = 0; i < lms.length; i += 12) r = Math.max(r, Math.hypot(lms[i].x * gw - cx, lms[i].y * gh - cy));
+    let R = Math.max(4, r);
+    for (let y = 0; y < gh; y++)
+      for (let x = 0; x < gw; x++) {
+        let d = Math.hypot(x - cx, y - cy);
+        this.kill[y * gw + x] = Math.min(1, Math.max(0, (d - R * 1.7) / (R * 0.6))) * 0.02;
+      }
+    for (let i = 0; i < lms.length; i += 9) {
+      let x = Math.round(lms[i].x * (gw - 1)), y = Math.round(lms[i].y * (gh - 1));
+      if (x < 1 || y < 1 || x >= gw - 1 || y >= gh - 1) continue;
+      let j = y * gw + x;
+      V[j] = Math.min(1, V[j] + 0.5), U[j] *= 0.5;
+    }
+  }
+  // Gray-Scott, Laplacien 3x3 (0.2 voisins, 0.05 diagonales)
+  _step(iters) {
+    let { gw, gh } = this, fade = this.active ? 0 : 4e-3, f = this.rd.f, k = this.rd.k + fade;
+    for (let it = 0; it < iters; it++) {
+      let U = this.U, V = this.V, U2 = this.U2, V2 = this.V2;
+      for (let y = 1; y < gh - 1; y++) {
+        let r = y * gw;
+        for (let x = 1; x < gw - 1; x++) {
+          let i = r + x, u = U[i], v2 = V[i], lu = 0.2 * (U[i - 1] + U[i + 1] + U[i - gw] + U[i + gw]) + 0.05 * (U[i - gw - 1] + U[i - gw + 1] + U[i + gw - 1] + U[i + gw + 1]) - u, lv = 0.2 * (V[i - 1] + V[i + 1] + V[i - gw] + V[i + gw]) + 0.05 * (V[i - gw - 1] + V[i - gw + 1] + V[i + gw - 1] + V[i + gw + 1]) - v2, uvv = u * v2 * v2;
+          U2[i] = u + (1 * lu - uvv + f * (1 - u)), V2[i] = v2 + (0.5 * lv + uvv - (k + this.kill[i] + f) * v2);
+        }
+      }
+      this.U = U2, this.U2 = U, this.V = V2, this.V2 = V;
+    }
+  }
+  _render() {
+    let { gw, gh, V, img } = this, d = img.data, [c1, c2] = this.palette, e = this.energy;
+    for (let i = 0; i < gw * gh; i++) {
+      let v2 = Math.min(1, V[i] * 3.2), o = i * 4, m = Math.min(1, v2 * 1.4);
+      d[o] = c1[0] + (c2[0] - c1[0]) * m, d[o + 1] = c1[1] + (c2[1] - c1[1]) * m, d[o + 2] = c1[2] + (c2[2] - c1[2]) * m, d[o + 3] = Math.min(255, v2 * 210 * e);
+    }
+    this.ctx.putImageData(img, 0, 0);
+  }
+  // Particules : dessinées sur le canvas du mesh (pleine résolution)
+  drawParticles(ctx, lms, w, h, t) {
+    let dt = Math.min(0.1, Math.max(1e-3, t - (this._pt || t)));
+    this._pt = t;
+    let unit = Math.max(w, h) / 640;
+    if (this.active && lms) {
+      let cx = 0, cy = 0;
+      for (let i = 0; i < lms.length; i += 20)
+        cx += lms[i].x, cy += lms[i].y;
+      let n = Math.ceil(lms.length / 20);
+      cx /= n, cy /= n;
+      for (let s = 0; s < 6; s++) {
+        let p = lms[Math.random() * Math.min(468, lms.length) | 0], dx = p.x - cx, dy = p.y - cy, len = Math.hypot(dx, dy) || 1, sp = 0.03 + Math.random() * 0.07;
+        this.particles.push({
+          x: p.x,
+          y: p.y,
+          vx: dx / len * sp,
+          vy: dy / len * sp - 0.01,
+          life: 1,
+          decay: 0.4 + Math.random() * 0.6,
+          r: (0.6 + Math.random() * 1.6) * unit,
+          c: Math.random() < 0.5 ? 0 : 1
+        });
+      }
+    }
+    if (!this.particles.length) return;
+    ctx.save(), ctx.globalCompositeOperation = "lighter";
+    let keep = [];
+    for (let p of this.particles) {
+      let ang = Math.sin(p.y * 9 + t * 0.7) + Math.cos(p.x * 7 - t * 0.5);
+      if (p.vx += Math.cos(ang) * 0.02 * dt, p.vy += Math.sin(ang) * 0.02 * dt, p.x += p.vx * dt, p.y += p.vy * dt, p.life -= p.decay * dt, p.life <= 0) continue;
+      keep.push(p);
+      let c = this.palette[p.c];
+      ctx.fillStyle = `rgba(${c[0] | 0}, ${c[1] | 0}, ${c[2] | 0}, ${p.life * 0.8 * Math.max(0.2, this.energy)})`, ctx.beginPath(), ctx.arc(p.x * w, p.y * h, p.r * (0.5 + p.life), 0, Math.PI * 2), ctx.fill();
+    }
+    this.particles = keep.length > 900 ? keep.slice(-900) : keep, ctx.restore();
+  }
+};
+
+// web/js/app.js
+var $2 = (id) => document.getElementById(id), PUMP_LABEL = {
+  0: "Rest",
+  1: "Alert",
+  2: "Curious",
+  3: "Defense",
+  4: "Vibrate",
+  5: "Drip",
+  6: "Twitch",
+  10: "Calm",
+  11: "Excited",
+  12: "Cooling down"
+}, HEAD_LABEL = { 0: "Awake", 1: "Falling asleep", 2: "Falling asleep", 3: "Asleep", 4: "Waking up" }, ANIM_DURATION = [1600, 1800, 2200, 3200, 2600, 2e3, 3600, 2e3], link = new RobotLink(), tracker = new FaceTracker($2("vid"), $2("mesh")), detector = new ExpressionDetector(), settings = loadSettings(), LATENT_TAB = 5, MIRROR_TAB = 6, tabRobotMode = (tab) => tab === LATENT_TAB ? MODE.MANUAL : tab === MIRROR_TAB ? MODE.MIMIC : tab, isCameraTab = (tab) => tab === MODE.MIMIC || tab === MIRROR_TAB, fx = new ContactFx($2("fx")), latent = new LatentEngine(CONFIG.limits), joy = { pitch: 0, roll: 0, yaw: 0, pumpA: 0, pumpB: 0, hold: !1 }, app = {
+  tab: null,
+  // onglet affiché (null = accueil / STOP)
+  desiredMode: null,
+  // mode demandé au robot (null = rien demandé)
+  robotMode: null,
+  // mode confirmé par le robot
+  status: null,
+  calib: null,
+  shouldCalibrate: !1,
+  last: null,
+  lastFaceT: 0,
+  playingAnim: ANIM_NONE
+}, filters = {
+  pitch: new OneEuro(CONFIG.oneEuro),
+  roll: new OneEuro(CONFIG.oneEuro),
+  yaw: new OneEuro(CONFIG.oneEuro)
+}, resetFilters = () => Object.values(filters).forEach((f) => f.reset()), clamp2 = (v2, lo, hi) => Math.max(lo, Math.min(hi, v2)), rel = (a, b) => ((a - b) % 360 + 540) % 360 - 180, NEUTRAL_PACKET = { face: !1, pitch: 0, roll: 0, yaw: 0, expression: EXPR.NEUTRAL, intensity: 0 }, lock = {
+  state: "idle",
+  since: 0,
+  lastSeen: -1,
+  lastOk: -1,
+  sessionStart: 0,
+  cooldownUntil: 0,
+  timer: null,
+  sum: null,
+  n: 0,
+  lastBs: null,
+  metrics: null
+}, follow = { target: { pitch: 0, roll: 0, yaw: 0 }, out: { pitch: 0, roll: 0, yaw: 0, pumpA: 0, pumpB: 0 } };
+function setLockState(state, t) {
+  lock.state = state, lock.since = t, state === "idle" && setRobotMode(MODE.RANDOM, 2), (state === "attract" || state === "locking") && app.desiredMode !== MODE.MANUAL && setRobotMode(MODE.MANUAL, 2), state === "locking" && (lock.sum = { pitch: { s: 0, c: 0 }, roll: { s: 0, c: 0 }, yaw: { s: 0, c: 0 } }, lock.n = 0);
+}
+function startTracking(t) {
+  if (clearTimeout(lock.timer), lock.n > 0) {
+    let mean = (k) => Math.atan2(lock.sum[k].s, lock.sum[k].c) * 180 / Math.PI;
+    app.calib = { pitch: mean("pitch"), roll: mean("roll"), yaw: mean("yaw") }, lock.lastBs && detector.calibrate(lock.lastBs), resetFilters();
+  } else
+    app.shouldCalibrate = !0;
+  lock.state = "tracking", lock.sessionStart = t, setRobotMode(MODE.MIMIC, 2), navigator.vibrate && navigator.vibrate([30, 40, 30]);
+}
+function endSession(t) {
+  tracker.dissolve(), lock.state = "cooldown", lock.cooldownUntil = t + settings.cooldownSec, clearTimeout(lock.timer);
+  let anim = CONFIG.mimic.endAnimation;
+  if (anim == null) {
+    setRobotMode(MODE.RANDOM, 2);
+    return;
+  }
+  setRobotMode(MODE.ANIM, 1), link.sendAnim(anim), lock.timer = setTimeout(() => {
+    app.tab === MODE.MIMIC && lock.state !== "tracking" && setRobotMode(MODE.RANDOM, 2);
+  }, (ANIM_DURATION[anim] ?? 2e3) + 200);
+}
+function resetLock() {
+  clearTimeout(lock.timer), lock.state = "idle", lock.lastSeen = -1, lock.lastOk = -1, Object.assign(follow.target, { pitch: 0, roll: 0, yaw: 0 }), Object.assign(follow.out, { pitch: 0, roll: 0, yaw: 0 }), tracker.overlay = { state: "idle", progress: 0 };
+}
+function faceReady(m, margin = 0) {
+  let M = CONFIG.mimic, big = m.size * 100 >= settings.minFaceSize - margin * 100, frontal = Math.abs(m.frontalH) <= M.frontalH && m.frontalV >= M.frontalV[0] && m.frontalV <= M.frontalV[1];
+  return { big, frontal, ok: big && frontal };
+}
+function updateLock(f) {
+  let M = CONFIG.mimic, t = f.t;
+  f.face && (lock.lastSeen = t, lock.metrics = f);
+  let gone = lock.lastSeen < 0 ? 1 / 0 : t - lock.lastSeen, ready = f.face ? faceReady(f, lock.state === "locking" ? M.sizeHysteresis : 0) : { big: !1, frontal: !1, ok: !1 };
+  ready.ok && (lock.lastOk = t);
+  let progress = 0;
+  switch (lock.state) {
+    case "idle":
+      f.face && setLockState("attract", t);
+      break;
+    case "attract":
+      gone > M.attractGraceMs / 1e3 ? setLockState("idle", t) : ready.ok && setLockState("locking", t);
+      break;
+    case "locking":
+      t - lock.lastOk > M.lockingGraceMs / 1e3 ? setLockState(f.face ? "attract" : "idle", t) : (progress = Math.min(1, (t - lock.since) / settings.lockSec), progress >= 1 && startTracking(t));
+      break;
+    case "tracking":
+      (gone > M.lostGraceMs / 1e3 || t - lock.sessionStart >= settings.sessionSec) && endSession(t);
+      break;
+    case "cooldown":
+      t >= lock.cooldownUntil && setLockState("idle", t);
+      break;
+  }
+  if (lock.state === "attract" && f.face) {
+    let sx = M.followInvertX ? -1 : 1, sy = M.followInvertY ? -1 : 1;
+    follow.target.yaw = clamp2((f.cx - 0.5) * 2, -1, 1) * M.followYaw * sx, follow.target.pitch = clamp2(-(f.cy - 0.5) * 2, -1, 1) * M.followPitch * sy;
+  } else lock.state === "locking" && (follow.target.yaw = 0, follow.target.pitch = 0);
+  tracker.overlay = { state: lock.state, progress }, renderLockInfo(f, ready, progress, t);
+}
+function renderLockInfo(f, ready, progress, t) {
+  let chip = $2("face-state");
+  switch (chip.dataset.state = lock.state, lock.state) {
+    case "idle":
+      chip.textContent = "Waiting for a face";
+      break;
+    case "attract":
+      chip.textContent = ready.big ? ready.frontal ? "Hold still" : "Look at me" : "Come closer";
+      break;
+    case "locking":
+      chip.textContent = `Locking ${Math.round(progress * 100)}%`;
+      break;
+    case "tracking": {
+      let left = Math.max(0, settings.sessionSec - (t - lock.sessionStart));
+      chip.textContent = f.face ? `Tracking ${Math.ceil(left)}s` : "Face lost\u2026", $2("session-bar").style.width = `${left / settings.sessionSec * 100}%`;
+      break;
+    }
+    case "cooldown":
+      chip.textContent = `Resting ${Math.ceil(Math.max(0, lock.cooldownUntil - t))}s`;
+      break;
+  }
+  lock.state !== "tracking" && ($2("session-bar").style.width = "0%");
+  let m = lock.metrics;
+  $2("face-size").textContent = f.face && m ? `${Math.round(m.size * 100)}%` : "\u2014", $2("face-need").textContent = `${settings.minFaceSize}%`, $2("face-frontal").textContent = f.face ? ready.frontal ? "yes" : "no" : "\u2014";
+}
+tracker.onFrame = (f) => {
+  if (app.tab === MIRROR_TAB) return mirrorFrame(f);
+  if (f.face && lock.state === "locking") {
+    for (let k of ["pitch", "roll", "yaw"]) {
+      let r = f[k] * Math.PI / 180;
+      lock.sum[k].s += Math.sin(r), lock.sum[k].c += Math.cos(r);
+    }
+    lock.n++, lock.lastBs = f.bs;
+  }
+  updateLock(f);
+  let tracking = lock.state === "tracking";
+  f.face && tracking && computeMimic(f), fx.active = tracking && f.face;
+  let ex = app.last && tracking ? { expression: app.last.fxExpression, intensity: app.last.fxIntensity } : { expression: EXPR.NEUTRAL, intensity: 0 };
+  fx.update({ lms: f.face ? f.lms : null, vw: f.vw, vh: f.vh, expression: ex.expression, intensity: ex.intensity, t: f.t }), fx.drawParticles(tracker.ctx, f.face ? f.lms : null, f.vw, f.vh, f.t), tracker.trackRgb = fx.meshRgb();
+};
+function mirrorFrame(f) {
+  tracker.overlay = { state: f.face ? "tracking" : "idle", progress: 1 }, tracker.trackRgb = null;
+  let chip = $2("face-state");
+  chip.dataset.state = f.face ? "tracking" : "idle", chip.textContent = f.face ? "Mirroring" : "No face", f.face && computeMimic(f);
+}
+function computeMimic(f) {
+  app.lastFaceT = f.t, (app.shouldCalibrate || !app.calib) && (app.calib = { pitch: f.pitch, roll: f.roll, yaw: f.yaw }, detector.calibrate(f.bs), app.shouldCalibrate = !1, resetFilters());
+  let s = settings, sign = (inv) => inv ? -1 : 1, pitch = clamp2(rel(f.pitch, app.calib.pitch) * s.gainPitch * sign(s.invertPitch), -CONFIG.limits.pitch, CONFIG.limits.pitch), roll = clamp2(rel(f.roll, app.calib.roll) * s.gainRoll * sign(s.invertRoll), -CONFIG.limits.roll, CONFIG.limits.roll), yaw = clamp2(rel(f.yaw, app.calib.yaw) * s.gainYaw * sign(s.invertYaw), -CONFIG.limits.yaw, CONFIG.limits.yaw), ex = detector.update(f.bs, f.t);
+  app.last = {
+    face: !0,
+    pitch: filters.pitch.filter(pitch, f.t),
+    roll: filters.roll.filter(roll, f.t),
+    yaw: filters.yaw.filter(yaw, f.t),
+    expression: s.pumpsEnabled ? ex.expression : EXPR.NEUTRAL,
+    intensity: s.pumpsEnabled ? ex.intensity : 0,
+    // pour les effets visuels, même si les pompes sont désactivées
+    fxExpression: ex.expression,
+    fxIntensity: ex.intensity
+  }, $2("val-pitch").textContent = app.last.pitch.toFixed(0), $2("val-roll").textContent = app.last.roll.toFixed(0), $2("val-yaw").textContent = app.last.yaw.toFixed(0), $2("expr-label").textContent = EXPR_LABEL[ex.expression], $2("expr-bar").style.width = `${Math.round(ex.intensity * 100)}%`, $2("expr-bar").dataset.expr = ex.expression;
+}
+setInterval(() => {
+  if (app.desiredMode !== MODE.MIMIC || !link.connected) return;
+  let now = performance.now() / 1e3, holding = app.last && (app.tab === MIRROR_TAB ? now - app.lastFaceT < CONFIG.FACE_LOST_MS / 1e3 : lock.state === "tracking");
+  link.sendMimic(holding ? app.last : NEUTRAL_PACKET);
+}, CONFIG.SEND_PERIOD_MS);
+setInterval(() => {
+  let dt = CONFIG.SEND_PERIOD_MS / 1e3;
+  if (app.tab === LATENT_TAB && latent.step(dt), app.tab === MODE.MIMIC) {
+    let tau = lock.state === "locking" ? CONFIG.mimic.recenterSmoothS : CONFIG.mimic.followSmoothS, k = 1 - Math.exp(-dt / tau);
+    for (let key of ["pitch", "yaw"]) follow.out[key] += (follow.target[key] - follow.out[key]) * k;
+    let curious = 0.25 + 0.1 * Math.sin(performance.now() / 600);
+    follow.out.pumpA = curious * 255, follow.out.pumpB = (0.5 - curious) * 255;
+  }
+  if (app.desiredMode !== MODE.MANUAL || !link.connected) return;
+  let source = app.tab === LATENT_TAB ? latent.out : app.tab === MODE.MIMIC ? follow.out : joy;
+  link.sendManual(source);
+}, CONFIG.SEND_PERIOD_MS);
+setInterval(() => {
+  app.desiredMode !== null && link.connected && link.sendMode(app.desiredMode), $2("fps").textContent = tracker.running ? `${tracker.fps} fps` : "\u2014";
+}, CONFIG.MODE_RESEND_MS);
+function setRobotMode(mode, repeat = 1) {
+  app.desiredMode = mode, link.sendMode(mode, repeat), render();
+}
+async function setTab(tab) {
+  let changed = app.tab !== tab;
+  if (app.tab = tab, isCameraTab(tab)) {
+    if (changed && (resetLock(), fx.clear(), app.calib = null, app.last = null, $2("panel-mimic").dataset.kind = tab === MIRROR_TAB ? "mirror" : "contact", setRobotMode(tab === MIRROR_TAB ? MODE.MIMIC : MODE.RANDOM, 2)), tracker.running) return;
+    try {
+      $2("face-state").textContent = "Loading\u2026", await tracker.start(), app.calib = null;
+    } catch (err) {
+      $2("face-state").textContent = "Camera unavailable", console.error(err);
+    }
+    return;
+  }
+  tracker.stop(), resetLock(), fx.clear(), exitStageFull(), $2("face-state").textContent = "Camera off", app.last = null, tab === null ? setRobotMode(MODE.STOP, CONFIG.STOP_REPEAT) : setRobotMode(tabRobotMode(tab), 2), tab === LATENT_TAB && startLatentDrawing();
+}
+function playAnim(id) {
+  app.tab !== MODE.ANIM && setTab(MODE.ANIM), link.sendAnim(id), showPlaying(id), navigator.vibrate && navigator.vibrate(15);
+}
+var playingTimer = null;
+function showPlaying(id) {
+  document.querySelectorAll(".anim").forEach((el) => {
+    let on = Number(el.dataset.anim) === id;
+    el.classList.remove("playing"), on && (el.offsetWidth, el.style.setProperty("--dur", `${ANIM_DURATION[id]}ms`), el.classList.add("playing"));
+  }), clearTimeout(playingTimer), playingTimer = setTimeout(() => {
+    document.querySelectorAll(".anim.playing").forEach((el) => el.classList.remove("playing"));
+  }, ANIM_DURATION[id] ?? 2e3);
+}
+function render() {
+  let shown = app.tab;
+  document.querySelectorAll(".tab").forEach((t) => {
+    let m = Number(t.dataset.mode);
+    t.classList.toggle("selected", app.tab === m), t.classList.toggle("confirmed", app.tab === m && app.robotMode === tabRobotMode(m));
+  }), $2("panel-idle").hidden = shown !== null, $2("panel-random").hidden = shown !== MODE.RANDOM, $2("panel-mimic").hidden = !isCameraTab(shown), $2("panel-anim").hidden = shown !== MODE.ANIM, $2("panel-joy").hidden = shown !== MODE.MANUAL, $2("panel-latent").hidden = shown !== LATENT_TAB;
+  let sel = document.querySelector(".tab.selected");
+  sel && sel.scrollIntoView({ block: "nearest", inline: "nearest" });
+  let parts = ["Robot"];
+  if (!link.connected) parts.push("not connected");
+  else {
+    let label = MODE_LABEL[app.robotMode];
+    app.tab === LATENT_TAB && app.robotMode === MODE.MANUAL && (label = "Latent space"), app.tab === MIRROR_TAB && app.robotMode === MODE.MIMIC && (label = "Mirror"), app.tab === MODE.MIMIC && app.robotMode === MODE.MIMIC && (label = "Contact"), app.tab === MODE.MIMIC && app.robotMode === MODE.MANUAL && (label = "Contact \xB7 approach"), parts.push(app.robotMode === null ? "\u2026" : label), app.status && parts.push(`${app.status.rxPerSec} msg/s`);
+  }
+  $2("status-line").textContent = parts.join(" \xB7 ");
+  let st = app.status;
+  $2("spec-head").textContent = st && app.robotMode === MODE.RANDOM ? HEAD_LABEL[st.macroState] ?? "\u2014" : "\u2014", $2("spec-pumps").textContent = st && app.robotMode === MODE.RANDOM ? PUMP_LABEL[st.pumpMood] ?? "\u2014" : "\u2014", $2("spec-link").textContent = link.connected ? "Bluetooth" : "Standalone";
+}
+document.querySelectorAll(".tab").forEach((t) => {
+  t.addEventListener("click", () => setTab(Number(t.dataset.mode)));
+});
+$2("btn-stop").addEventListener("click", () => {
+  navigator.vibrate && navigator.vibrate(60), $2("joy-center").click(), setTab(null);
+});
+$2("btn-calibrate").addEventListener("click", () => {
+  app.shouldCalibrate = !0;
+  let btn = $2("btn-calibrate");
+  btn.classList.add("flash"), setTimeout(() => btn.classList.remove("flash"), 800);
+});
+var stage = document.querySelector(".stage");
+function exitStageFull() {
+  stage.classList.remove("is-full"), document.fullscreenElement === stage && document.exitFullscreen().catch(() => {
+  });
+}
+stage.addEventListener("click", () => {
+  if (stage.classList.contains("is-full")) {
+    exitStageFull();
+    return;
+  }
+  stage.classList.add("is-full");
+  try {
+    stage.requestFullscreen?.({ navigationUI: "hide" })?.catch(() => {
+    });
+  } catch {
+  }
+});
+document.addEventListener("fullscreenchange", () => {
+  document.fullscreenElement || stage.classList.remove("is-full");
+});
+$2("btn-mesh").addEventListener("click", () => {
+  let vid = $2("vid"), meshOnly = vid.style.opacity !== "0";
+  vid.style.opacity = meshOnly ? "0" : "1", $2("btn-mesh").classList.toggle("active", meshOnly), $2("btn-mesh").textContent = meshOnly ? "Video" : "Mesh only";
+});
+$2("anim-grid").innerHTML = ANIMS.map((a) => `
+  <button class="anim" data-anim="${a.id}">
+    <span class="num">A-${String(a.id + 1).padStart(2, "0")}</span>
+    <span class="anim-name">${a.name}</span>
+    <span class="anim-hint">${a.hint}</span>
+  </button>`).join("");
+$2("anim-grid").addEventListener("click", (e) => {
+  let b = e.target.closest(".anim");
+  b && playAnim(Number(b.dataset.anim));
+});
+function initJoystick() {
+  let pad = $2("joy"), knob = $2("joy-knob"), active = null, setStick = (nx, ny) => {
+    let r = pad.clientWidth / 2 - 36;
+    knob.style.transform = `translate(${nx * r}px, ${-ny * r}px)`, joy.yaw = nx * CONFIG.limits.yaw * (CONFIG.joystick.invertX ? -1 : 1), joy.pitch = ny * CONFIG.limits.pitch * (CONFIG.joystick.invertY ? -1 : 1), $2("joy-yaw").textContent = joy.yaw.toFixed(0), $2("joy-pitch").textContent = joy.pitch.toFixed(0);
+  }, fromEvent = (e) => {
+    let rect = pad.getBoundingClientRect(), nx = (e.clientX - rect.left) / rect.width * 2 - 1, ny = 1 - (e.clientY - rect.top) / rect.height * 2, len = Math.hypot(nx, ny);
+    len > 1 && (nx /= len, ny /= len), setStick(nx, ny);
+  };
+  pad.addEventListener("pointerdown", (e) => {
+    app.tab !== MODE.MANUAL && setTab(MODE.MANUAL), active = e.pointerId, pad.setPointerCapture(e.pointerId), pad.classList.add("dragging"), fromEvent(e);
+  }), pad.addEventListener("pointermove", (e) => {
+    e.pointerId === active && fromEvent(e);
+  });
+  let release = (e) => {
+    e.pointerId === active && (active = null, pad.classList.remove("dragging"), joy.hold || setStick(0, 0));
+  };
+  pad.addEventListener("pointerup", release), pad.addEventListener("pointercancel", release);
+  let bindRange = (id, key, fmt) => {
+    let input = $2(id);
+    input.addEventListener("input", () => {
+      joy[key] = Number(input.value), $2(`${id}-val`).textContent = fmt(joy[key]);
+    });
+  };
+  bindRange("joy-roll", "roll", (v2) => `${v2}\xB0`), bindRange("joy-pumpA", "pumpA", (v2) => `${v2}`), bindRange("joy-pumpB", "pumpB", (v2) => `${v2}`), $2("joy-roll").addEventListener("dblclick", () => {
+    $2("joy-roll").value = 0, joy.roll = 0, $2("joy-roll-val").textContent = "0\xB0";
+  }), $2("joy-hold").addEventListener("click", () => {
+    joy.hold = !joy.hold, $2("joy-hold").classList.toggle("active", joy.hold), !joy.hold && active === null && setStick(0, 0);
+  }), $2("joy-center").addEventListener("click", () => {
+    setStick(0, 0);
+    for (let [id, key, txt] of [["joy-roll", "roll", "0\xB0"], ["joy-pumpA", "pumpA", "0"], ["joy-pumpB", "pumpB", "0"]])
+      $2(id).value = 0, joy[key] = 0, $2(`${id}-val`).textContent = txt;
+  });
+}
+var latentPad = initLatentPad($2("latent-pad"), latent), latentDrawing = !1, latentUiT = 0;
+function startLatentDrawing() {
+  if (latentDrawing) return;
+  latentDrawing = !0;
+  let frame = (ts) => {
+    if (app.tab !== LATENT_TAB || document.hidden) {
+      latentDrawing = !1;
+      return;
+    }
+    if (latentPad.draw(), ts - latentUiT > 120) {
+      latentUiT = ts, $2("lat-v").textContent = latent.pos.v.toFixed(2), $2("lat-a").textContent = latent.pos.a.toFixed(2);
+      let top = latent.topMix(3).filter((m) => m.w > 0.08);
+      $2("lat-mix").innerHTML = top.map((m, i) => i === 0 ? `${m.name} <span>${Math.round(m.w * 100)}%</span>` : `<span>\xB7 ${m.name} ${Math.round(m.w * 100)}%</span>`).join(" ");
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+$2("lat-drift").addEventListener("click", () => {
+  latent.drift = !latent.drift, $2("lat-drift").classList.toggle("active", latent.drift), $2("lat-drift").textContent = latent.drift ? "Drifting\u2026" : "Drift";
+});
+$2("lat-center").addEventListener("click", () => {
+  latent.drift = !1, $2("lat-drift").classList.remove("active"), $2("lat-drift").textContent = "Drift", latent.setTarget(0, 0);
+});
+$2("lat-speed").addEventListener("input", (e) => {
+  latent.driftSpeed = Number(e.target.value) / 100, $2("lat-speed-val").textContent = `${e.target.value}%`;
+});
+$2("lat-pumps").addEventListener("input", (e) => {
+  latent.pumpLevel = Number(e.target.value) / 100, $2("lat-pumps-val").textContent = `${e.target.value}%`;
+});
+link.onState = (state) => {
+  $2("btn-connect").dataset.state = state, $2("conn-label").textContent = state === "connected" ? "Connected" : state === "connecting" ? "Connecting" : "Connect", state === "connected" && app.desiredMode !== null && link.sendMode(app.desiredMode, 2), state !== "connected" && (app.robotMode = null, app.status = null, $2("stats").textContent = "\u2014"), render();
+};
+link.onStatus = (st) => {
+  app.robotMode = st.mode, app.status = st, $2("stats").textContent = `${st.rxPerSec} msg/s \xB7 ${st.lostPerSec} lost/s \xB7 ${st.crcErrors} errors`, render();
+};
+$2("btn-connect").addEventListener("click", async () => {
+  if (!link.connected)
+    try {
+      await link.choose();
+    } catch (err) {
+      err.name !== "NotFoundError" && ($2("conn-label").textContent = "Error");
+    }
+});
+var settingsSheet = $2("sheet-settings");
+$2("btn-settings").addEventListener("click", () => {
+  settingsSheet.hidden = !1;
+});
+settingsSheet.querySelector("[data-close]").addEventListener("click", () => {
+  settingsSheet.hidden = !0;
+});
+settingsSheet.addEventListener("click", (e) => {
+  e.target === settingsSheet && (settingsSheet.hidden = !0);
+});
+function bindSettings() {
+  for (let key of ["gainPitch", "gainRoll", "gainYaw"]) {
+    let input = $2(key), out = $2(`${key}-val`);
+    input.value = settings[key], out.textContent = Number(settings[key]).toFixed(1), input.addEventListener("input", () => {
+      settings[key] = parseFloat(input.value), out.textContent = settings[key].toFixed(1), saveSettings(settings);
+    });
+  }
+  for (let [key, unit] of [["sessionSec", "s"], ["minFaceSize", "%"], ["lockSec", "s"], ["cooldownSec", "s"]]) {
+    let input = $2(key), out = $2(`${key}-val`);
+    input.value = settings[key], out.textContent = `${settings[key]}${unit}`, input.addEventListener("input", () => {
+      settings[key] = Number(input.value), out.textContent = `${settings[key]}${unit}`, saveSettings(settings);
+    });
+  }
+  for (let key of ["invertPitch", "invertRoll", "invertYaw", "pumpsEnabled"]) {
+    let input = $2(key);
+    input.checked = !!settings[key], input.addEventListener("change", () => {
+      settings[key] = input.checked, saveSettings(settings);
+    });
+  }
+}
+function bindQrColors() {
+  let fgInput = $2("qrFg"), bgInput = $2("qrBg"), update = () => {
+    fgInput.value = settings.qrFg, bgInput.value = settings.qrBg, $2("qr-preview").innerHTML = qrSvg("https://specimens.ai", settings.qrFg, settings.qrBg, 1), $2("qr-contrast").textContent = contrastNote(settings.qrFg, settings.qrBg), document.querySelectorAll(".swatch").forEach((sw) => {
+      sw.classList.toggle("on", sw.dataset.fg === settings.qrFg && sw.dataset.bg === settings.qrBg);
+    }), saveSettings(settings), qr.refresh();
+  };
+  $2("qr-presets").innerHTML = QR_PRESETS.map((p) => `
+    <button class="swatch" data-fg="${p.fg}" data-bg="${p.bg}" style="background:${p.bg}" aria-label="${p.name}">
+      <span style="background:${p.fg}"></span>
+    </button>`).join(""), $2("qr-presets").addEventListener("click", (e) => {
+    let sw = e.target.closest(".swatch");
+    sw && (settings.qrFg = sw.dataset.fg, settings.qrBg = sw.dataset.bg, update());
+  }), fgInput.addEventListener("input", () => {
+    settings.qrFg = fgInput.value, update();
+  }), bgInput.addEventListener("input", () => {
+    settings.qrBg = bgInput.value, update();
+  }), update();
+}
+var wakeLock = null;
+async function keepAwake() {
+  try {
+    "wakeLock" in navigator && !wakeLock && (wakeLock = await navigator.wakeLock.request("screen"), wakeLock.addEventListener("release", () => {
+      wakeLock = null;
+    }));
+  } catch {
+  }
+}
+document.addEventListener("click", keepAwake);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden)
+    tracker.stop(), app.tab === MODE.MIMIC && lock.state === "tracking" && endSession(performance.now() / 1e3), fx.clear();
+  else if (keepAwake(), app.tab === LATENT_TAB && startLatentDrawing(), isCameraTab(app.tab)) {
+    let t = app.tab;
+    app.tab = null, setTab(t);
+  }
+});
+bindSettings();
+var qr = initQr({ getColors: () => ({ fg: settings.qrFg, bg: settings.qrBg }) });
+bindQrColors();
+initJoystick();
+render();
+RobotLink.supported() ? ($2("conn-label").textContent = "Connect", link.tryRemembered()) : ($2("conn-label").textContent = "Chrome required", $2("btn-connect").disabled = !0);
+
+</script>
+</body>
+</html>
